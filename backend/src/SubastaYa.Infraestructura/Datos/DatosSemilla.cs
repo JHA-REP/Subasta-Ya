@@ -1,0 +1,321 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
+
+namespace SubastaYa.Infraestructura.Datos;
+
+/// <summary>
+/// Datos semilla para pruebas de todos los escenarios requeridos:
+/// - Subasta activa estándar
+/// - Subasta activa crítica
+/// - Subasta próxima
+/// - Subasta vencida con ganador
+/// - Subasta vencida desierta
+/// - Billetera con saldo retenido
+/// - Usuario sin fondos
+/// </summary>
+public static class DatosSemilla
+{
+    // Fecha de referencia fija para datos semilla reproducibles
+    private static readonly DateTime FechaReferencia = new(2026, 8, 30, 12, 0, 0, DateTimeKind.Utc);
+
+    public static void Aplicacion(ModelBuilder constructor)
+    {
+        SemillaUsuarios(constructor);
+        SemillaBilleteras(constructor);
+        SemillaCategorias(constructor);
+        SemillaSubastas(constructor);
+        SemillaPujas(constructor);
+        SemillaMovimientos(constructor);
+    }
+
+    private static string HashClave(string clave)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(clave));
+        return Convert.ToBase64String(bytes);
+    }
+
+    private static void SemillaUsuarios(ModelBuilder constructor)
+    {
+        constructor.Entity<Usuario>().HasData(
+            new Usuario
+            {
+                Id = 1,
+                Alias = "admin",
+                Email = "admin@subastaya.com",
+                ClaveHash = HashClave("Admin123!"),
+                Rol = RolUsuario.Administrador,
+                FechaRegistro = FechaReferencia.AddDays(-30)
+            },
+            new Usuario
+            {
+                Id = 2,
+                Alias = "juan_vendedor",
+                Email = "juan@mail.com",
+                ClaveHash = HashClave("Juan123!"),
+                Rol = RolUsuario.Vendedor,
+                FechaRegistro = FechaReferencia.AddDays(-25)
+            },
+            new Usuario
+            {
+                Id = 3,
+                Alias = "maria_compradora",
+                Email = "maria@mail.com",
+                ClaveHash = HashClave("Maria123!"),
+                Rol = RolUsuario.Comprador,
+                FechaRegistro = FechaReferencia.AddDays(-20)
+            },
+            new Usuario
+            {
+                Id = 4,
+                Alias = "pedro_postor",
+                Email = "pedro@mail.com",
+                ClaveHash = HashClave("Pedro123!"),
+                Rol = RolUsuario.Comprador,
+                FechaRegistro = FechaReferencia.AddDays(-18)
+            },
+            new Usuario
+            {
+                Id = 5,
+                Alias = "ana_vip",
+                Email = "ana@mail.com",
+                ClaveHash = HashClave("Ana123!"),
+                Rol = RolUsuario.Comprador,
+                FechaRegistro = FechaReferencia.AddDays(-15)
+            }
+        );
+    }
+
+    private static void SemillaBilleteras(ModelBuilder constructor)
+    {
+        constructor.Entity<Billetera>().HasData(
+            new Billetera
+            {
+                Id = 1,
+                UsuarioId = 1,
+                Saldo = 0m,
+                SaldoRetenido = 0m
+            },
+            new Billetera
+            {
+                Id = 2,
+                UsuarioId = 2,
+                Saldo = 5000m,
+                SaldoRetenido = 0m
+            },
+            // maria_compradora: billetera con saldo retenido ✓
+            new Billetera
+            {
+                Id = 3,
+                UsuarioId = 3,
+                Saldo = 10000m,
+                SaldoRetenido = 3500m
+            },
+            // pedro_postor: usuario sin fondos ✓
+            new Billetera
+            {
+                Id = 4,
+                UsuarioId = 4,
+                Saldo = 200m,
+                SaldoRetenido = 0m
+            },
+            new Billetera
+            {
+                Id = 5,
+                UsuarioId = 5,
+                Saldo = 50000m,
+                SaldoRetenido = 1500m
+            }
+        );
+    }
+
+    private static void SemillaCategorias(ModelBuilder constructor)
+    {
+        constructor.Entity<Categoria>().HasData(
+            new Categoria { Id = 1, Nombre = "Electrónica", Descripcion = "Dispositivos y gadgets electrónicos" },
+            new Categoria { Id = 2, Nombre = "Hogar", Descripcion = "Artículos para el hogar y decoración" },
+            new Categoria { Id = 3, Nombre = "Deportes", Descripcion = "Equipamiento y artículos deportivos" },
+            new Categoria { Id = 4, Nombre = "Arte", Descripcion = "Obras de arte, pinturas y esculturas" }
+        );
+    }
+
+    private static void SemillaSubastas(ModelBuilder constructor)
+    {
+        constructor.Entity<Subasta>().HasData(
+            // Subasta activa estándar ✓
+            new Subasta
+            {
+                Id = 1,
+                Titulo = "Notebook Gamer MSI",
+                Descripcion = "Notebook gamer MSI con RTX 4060, 16GB RAM, 512GB SSD. Estado impecable.",
+                PrecioBase = 5000m,
+                CategoriaId = 1,
+                VendedorId = 2,
+                Estado = EstadoSubasta.Activa,
+                FechaInicio = FechaReferencia.AddDays(-2),
+                FechaFin = FechaReferencia.AddDays(5)
+            },
+            // Subasta activa crítica (próxima a vencer) ✓
+            new Subasta
+            {
+                Id = 2,
+                Titulo = "Cuadro Óleo Original",
+                Descripcion = "Cuadro al óleo original de artista emergente. Técnica mixta sobre lienzo 80x60.",
+                PrecioBase = 8000m,
+                CategoriaId = 4,
+                VendedorId = 2,
+                Estado = EstadoSubasta.Activa,
+                FechaInicio = FechaReferencia.AddDays(-3),
+                FechaFin = FechaReferencia.AddMinutes(30)
+            },
+            // Subasta próxima ✓
+            new Subasta
+            {
+                Id = 3,
+                Titulo = "Bicicleta Montaña R29",
+                Descripcion = "Bicicleta de montaña rodado 29, cuadro de aluminio, 21 velocidades.",
+                PrecioBase = 3000m,
+                CategoriaId = 3,
+                VendedorId = 2,
+                Estado = EstadoSubasta.Pendiente,
+                FechaInicio = FechaReferencia.AddDays(2),
+                FechaFin = FechaReferencia.AddDays(9)
+            },
+            // Subasta vencida con ganador ✓
+            new Subasta
+            {
+                Id = 4,
+                Titulo = "Smart TV 55 Pulgadas",
+                Descripcion = "Smart TV LED 55 pulgadas 4K UHD con sistema operativo integrado.",
+                PrecioBase = 4000m,
+                CategoriaId = 1,
+                VendedorId = 2,
+                Estado = EstadoSubasta.Finalizada,
+                FechaInicio = FechaReferencia.AddDays(-10),
+                FechaFin = FechaReferencia.AddDays(-3)
+            },
+            // Subasta vencida desierta ✓
+            new Subasta
+            {
+                Id = 5,
+                Titulo = "Set de Sartenes Profesional",
+                Descripcion = "Set de 5 sartenes profesionales con revestimiento cerámico antiadherente.",
+                PrecioBase = 1500m,
+                CategoriaId = 2,
+                VendedorId = 2,
+                Estado = EstadoSubasta.Finalizada,
+                FechaInicio = FechaReferencia.AddDays(-10),
+                FechaFin = FechaReferencia.AddDays(-2)
+            }
+        );
+    }
+
+    private static void SemillaPujas(ModelBuilder constructor)
+    {
+        constructor.Entity<Puja>().HasData(
+            // Pujas en subasta activa estándar (Id=1)
+            new Puja
+            {
+                Id = 1,
+                SubastaId = 1,
+                PostorId = 3,
+                Monto = 5500m,
+                FechaPuja = FechaReferencia.AddDays(-1)
+            },
+            new Puja
+            {
+                Id = 2,
+                SubastaId = 1,
+                PostorId = 5,
+                Monto = 6000m,
+                FechaPuja = FechaReferencia.AddHours(-12)
+            },
+            // Puja en subasta activa crítica (Id=2)
+            new Puja
+            {
+                Id = 3,
+                SubastaId = 2,
+                PostorId = 3,
+                Monto = 8500m,
+                FechaPuja = FechaReferencia.AddHours(-2)
+            },
+            // Puja en subasta vencida con ganador (Id=4)
+            new Puja
+            {
+                Id = 4,
+                SubastaId = 4,
+                PostorId = 5,
+                Monto = 4500m,
+                FechaPuja = FechaReferencia.AddDays(-5)
+            }
+        );
+    }
+
+    private static void SemillaMovimientos(ModelBuilder constructor)
+    {
+        constructor.Entity<MovimientoContable>().HasData(
+            // Carga inicial maria_compradora
+            new MovimientoContable
+            {
+                Id = 1,
+                BilleteraId = 3,
+                Tipo = TipoMovimiento.Carga,
+                Monto = 15000m,
+                Concepto = "Carga inicial de saldo",
+                FechaMovimiento = FechaReferencia.AddDays(-15)
+            },
+            // Retención por pujas activas de maria_compradora
+            new MovimientoContable
+            {
+                Id = 2,
+                BilleteraId = 3,
+                Tipo = TipoMovimiento.Retencion,
+                Monto = -3500m,
+                Concepto = "Retención por pujas activas en subastas",
+                FechaMovimiento = FechaReferencia.AddDays(-1)
+            },
+            // Carga inicial ana_vip
+            new MovimientoContable
+            {
+                Id = 3,
+                BilleteraId = 5,
+                Tipo = TipoMovimiento.Carga,
+                Monto = 55000m,
+                Concepto = "Carga inicial de saldo",
+                FechaMovimiento = FechaReferencia.AddDays(-15)
+            },
+            // Retención por puja de ana_vip en subasta 2
+            new MovimientoContable
+            {
+                Id = 4,
+                BilleteraId = 5,
+                Tipo = TipoMovimiento.Retencion,
+                Monto = -1500m,
+                Concepto = "Retención por puja en subasta Cuadro Óleo",
+                FechaMovimiento = FechaReferencia.AddHours(-2)
+            },
+            // Carga inicial pedro_postor (sin fondos)
+            new MovimientoContable
+            {
+                Id = 5,
+                BilleteraId = 4,
+                Tipo = TipoMovimiento.Carga,
+                Monto = 200m,
+                Concepto = "Carga inicial de saldo",
+                FechaMovimiento = FechaReferencia.AddDays(-15)
+            },
+            // Carga inicial juan_vendedor
+            new MovimientoContable
+            {
+                Id = 6,
+                BilleteraId = 2,
+                Tipo = TipoMovimiento.Carga,
+                Monto = 5000m,
+                Concepto = "Carga inicial de saldo vendedor",
+                FechaMovimiento = FechaReferencia.AddDays(-15)
+            }
+        );
+    }
+}
