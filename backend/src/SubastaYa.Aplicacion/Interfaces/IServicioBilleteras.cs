@@ -9,4 +9,6 @@ public interface IServicioBilleteras
 {
     Task<BilleteraDto> DetallePorUsuarioIdAsync(int usuarioId);
     Task<IEnumerable<MovimientoContableDto>> MovimientosPorBilleteraIdAsync(int billeteraId);
+    Task<BilleteraDto> AcreditacionSaldoSimuladaAsync(int usuarioId, decimal monto);  // <-- carga de saldo simulada
+ 
 }
