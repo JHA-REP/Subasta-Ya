@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SubastaYa.API/SubastaYa.API.csproj" />
+    <Project Path="src/SubastaYa.Aplicacion/SubastaYa.Aplicacion.csproj" />
+    <Project Path="src/SubastaYa.Dominio/SubastaYa.Dominio.csproj" />
+    <Project Path="src/SubastaYa.Infraestructura/SubastaYa.Infraestructura.csproj" />
+    <Project Path="src/SubastaYa.Worker/SubastaYa.Worker.csproj" />
+  </Folder>
+</Solution>
