@@ -3,7 +3,7 @@ using SubastaYa.Dominio.Enumeraciones;
 namespace SubastaYa.Dominio.Entidades;
 
 /// <summary>
-/// Registro contable de un movimiento en una billetera.
+/// registro contable INMUTABLE de un movimiento en una billetera (Ledger).
 /// </summary>
 public class MovimientoContable : EntidadBase
 {
