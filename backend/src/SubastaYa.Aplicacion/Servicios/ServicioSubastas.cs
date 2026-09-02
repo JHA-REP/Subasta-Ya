@@ -32,7 +32,9 @@ public class ServicioSubastas : IServicioSubastas
             Id = s.Id,
             Titulo = s.Titulo,
             Descripcion = s.Descripcion,
+            ImagenUrl = s.ImagenUrl,
             PrecioBase = s.PrecioBase,
+            IncrementoMinimo = s.IncrementoMinimo,
             Categoria = s.Categoria?.Nombre ?? string.Empty,
             CategoriaId = s.CategoriaId,
             Vendedor = s.Vendedor?.Alias ?? string.Empty,
@@ -49,6 +51,9 @@ public class ServicioSubastas : IServicioSubastas
 
     public async Task<SubastaDto> DetallePorIdAsync(int id)
     {
+       
+
+
         var subasta = await _repositorioSubastas.PorIdAsync(id)
             ?? throw new ExcepcionNoEncontrado(nameof(Subasta), id);
 
@@ -57,7 +62,9 @@ public class ServicioSubastas : IServicioSubastas
             Id = subasta.Id,
             Titulo = subasta.Titulo,
             Descripcion = subasta.Descripcion,
+            ImagenUrl = subasta.ImagenUrl,
             PrecioBase = subasta.PrecioBase,
+            IncrementoMinimo = subasta.IncrementoMinimo,
             Categoria = subasta.Categoria?.Nombre ?? string.Empty,
             CategoriaId = subasta.CategoriaId,
             Vendedor = subasta.Vendedor?.Alias ?? string.Empty,
@@ -74,14 +81,19 @@ public class ServicioSubastas : IServicioSubastas
 
     public async Task<SubastaDto> NuevaAsync(NuevaSubastaDto dto)
     {
+        var ahora = DateTime.UtcNow;
+        var estadoInicial = dto.FechaInicio <= ahora ? EstadoSubasta.Activa : EstadoSubasta.Pendiente;
+
         var subasta = new Subasta
         {
             Titulo = dto.Titulo,
             Descripcion = dto.Descripcion,
+            ImagenUrl = dto.ImagenUrl,
             PrecioBase = dto.PrecioBase,
+            IncrementoMinimo = dto.IncrementoMinimo,
             CategoriaId = dto.CategoriaId,
             VendedorId = dto.VendedorId,
-            Estado = EstadoSubasta.Pendiente,
+            Estado = estadoInicial,
             FechaInicio = dto.FechaInicio,
             FechaFin = dto.FechaFin
         };
@@ -94,7 +106,9 @@ public class ServicioSubastas : IServicioSubastas
             Id = subasta.Id,
             Titulo = subasta.Titulo,
             Descripcion = subasta.Descripcion,
+            ImagenUrl = subasta.ImagenUrl,
             PrecioBase = subasta.PrecioBase,
+            IncrementoMinimo = subasta.IncrementoMinimo,
             CategoriaId = subasta.CategoriaId,
             VendedorId = subasta.VendedorId,
             Estado = subasta.Estado,

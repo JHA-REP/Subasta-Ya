@@ -7,7 +7,9 @@ public class SubastaDto
     public int Id { get; set; }
     public string Titulo { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
+    public string ImagenUrl { get; set; } = string.Empty;
     public decimal PrecioBase { get; set; }
+    public decimal IncrementoMinimo { get; set; }
     public string Categoria { get; set; } = string.Empty;
     public int CategoriaId { get; set; }
     public string Vendedor { get; set; } = string.Empty;
@@ -23,7 +25,9 @@ public class NuevaSubastaDto
 {
     public string Titulo { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
+    public string ImagenUrl { get; set; } = string.Empty;
     public decimal PrecioBase { get; set; }
+    public decimal IncrementoMinimo { get; set; }
     public int CategoriaId { get; set; }
     public int VendedorId { get; set; }
     public DateTime FechaInicio { get; set; }
