@@ -37,4 +37,13 @@ public class BilleterasControlador : ControllerBase
         var movimientos = await _servicioBilleteras.MovimientosPorBilleteraIdAsync(billeteraId);
         return Ok(movimientos);
     }
+
++   // carga simulada de saldo ficticio a la billetera de un usuario
++   [HttpPost("usuario/{usuarioId:int}/acreditaciones")]
++   public async Task<ActionResult<BilleteraDto>> AcreditacionSimulada(int usuarioId, [FromBody] AcreditacionDto dto)
++   {
++       var billetera = await _servicioBilleteras.AcreditacionSaldoSimuladaAsync(usuarioId, dto.Monto);
++       return Ok(billetera);
++   }
+
 }
