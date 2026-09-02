@@ -128,6 +128,14 @@ public class ServicioPujas : IServicioPujas
 
         await _repositorioPujas.AltaAsync(puja);
 
+        //anti-sniping 
+
+        var tiempoRestante = subasta.FechaFin - fechaHoraActual;
+        if (tiempoRestante <= TimeSpan.FromSeconds(60))
+        {
+            subasta.FechaFin = subasta.FechaFin.AddMinutes(2);
+        }
+
         // activacion concurrencia optimista sobre la subasta
         _repositorioSubastas.Modificacion(subasta);
 
