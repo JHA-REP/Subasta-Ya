@@ -75,6 +75,20 @@ public class ServicioPujas : IServicioPujas
                    ?? throw new ExcepcionNoEncontrado(nameof(Billetera), dto.PostorId);
         PujaValidacionReglas.ValidacionSaldoDisponible(billeteraNuevoPostor.Saldo, billeteraNuevoPostor.SaldoRetenido, dto.Monto);
 
+        /// retencion de fondos en billetera y registro en ledger
+
+        billeteraNuevoPostor.SaldoRetenido += dto.Monto;
+        _repositorioBilleteras.Modificacion(billeteraNuevoPostor);
+
+        await _repositorioMovimientos.AltaAsync(new MovimientoContable
+        {
+            BilleteraId = billeteraNuevoPostor.Id,
+            Tipo = TipoMovimiento.Retencion,
+            Monto = -dto.Monto,
+            Concepto = $"Retención por oferta líder en subasta #{subasta.Id}",
+            FechaMovimiento = fechaHoraActual
+        });
+
         var puja = new Puja
         {
             SubastaId = dto.SubastaId,
