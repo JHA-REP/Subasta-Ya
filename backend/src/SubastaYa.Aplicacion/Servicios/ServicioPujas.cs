@@ -127,6 +127,10 @@ public class ServicioPujas : IServicioPujas
         };
 
         await _repositorioPujas.AltaAsync(puja);
+
+        // activacion concurrencia optimista sobre la subasta
+        _repositorioSubastas.Modificacion(subasta);
+
         await _unidadDeTrabajo.ConfirmacionAsync();
         await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
