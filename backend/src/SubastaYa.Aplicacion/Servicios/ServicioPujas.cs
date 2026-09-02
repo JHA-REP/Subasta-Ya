@@ -1,8 +1,10 @@
 using SubastaYa.Aplicacion.DTOs;
 using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
 using SubastaYa.Dominio.Interfaces;
+using SubastaYa.Dominio.Reglas;
 
 namespace SubastaYa.Aplicacion.Servicios;
 
@@ -14,15 +16,21 @@ public class ServicioPujas : IServicioPujas
 {
     private readonly IRepositorio<Puja> _repositorioPujas;
     private readonly IRepositorio<Subasta> _repositorioSubastas;
+    private readonly IRepositorio<Billetera> _repositorioBilleteras;
+    private readonly IRepositorio<MovimientoContable> _repositorioMovimientos;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public ServicioPujas(
         IRepositorio<Puja> repositorioPujas,
         IRepositorio<Subasta> repositorioSubastas,
+        IRepositorio<Billetera> repositorioBilleteras,
+        IRepositorio<MovimientoContable> repositorioMovimientos,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioPujas = repositorioPujas;
         _repositorioSubastas = repositorioSubastas;
+        _repositorioBilleteras = repositorioBilleteras;
+        _repositorioMovimientos = repositorioMovimientos;
         _unidadDeTrabajo = unidadDeTrabajo;
     }
 
@@ -43,16 +51,36 @@ public class ServicioPujas : IServicioPujas
 
     public async Task<PujaDto> NuevaAsync(NuevaPujaDto dto)
     {
-        // Validación básica — la lógica completa (escrow, anti-sniping) se implementará en etapas posteriores.
+        var fechaHoraActual = DateTime.UtcNow;
+       
         var subasta = await _repositorioSubastas.PorIdAsync(dto.SubastaId)
             ?? throw new ExcepcionNoEncontrado(nameof(Subasta), dto.SubastaId);
+
+        // evaluacion de reglas de negocio de subasta
+
+        PujaValidacionReglas.ValidacionEstadoSubasta(subasta.Estado);
+        PujaValidacionReglas.ValidacionVentanaTemporal(subasta.FechaInicio, subasta.FechaFin, fechaHoraActual);
+        PujaValidacionReglas.ValidacionPostorDiferenteDeVendedor(dto.PostorId, subasta.VendedorId);
+
+        //evaluacion de ofertas anteriores y monto mínimo
+
+        var pujasExistentes = await _repositorioPujas.FiltradasAsync(p => p.SubastaId == dto.SubastaId);
+        var pujaLiderAnterior = pujasExistentes.OrderByDescending(p => p.Monto).FirstOrDefault();
+        PujaValidacionReglas.ValidacionMontoOferta(dto.Monto, subasta.PrecioBase, subasta.IncrementoMinimo, pujaLiderAnterior?.Monto);
+
+        //evaluación de saldo disponible en la billetera del postor
+
+        var billeterasNuevoPostor = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == dto.PostorId);
+        var billeteraNuevoPostor = billeterasNuevoPostor.FirstOrDefault()
+                   ?? throw new ExcepcionNoEncontrado(nameof(Billetera), dto.PostorId);
+        PujaValidacionReglas.ValidacionSaldoDisponible(billeteraNuevoPostor.Saldo, billeteraNuevoPostor.SaldoRetenido, dto.Monto);
 
         var puja = new Puja
         {
             SubastaId = dto.SubastaId,
             PostorId = dto.PostorId,
             Monto = dto.Monto,
-            FechaPuja = DateTime.UtcNow
+            FechaPuja = fechaHoraActual
         };
 
         await _repositorioPujas.AltaAsync(puja);
