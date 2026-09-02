@@ -75,6 +75,35 @@ public class ServicioPujas : IServicioPujas
                    ?? throw new ExcepcionNoEncontrado(nameof(Billetera), dto.PostorId);
         PujaValidacionReglas.ValidacionSaldoDisponible(billeteraNuevoPostor.Saldo, billeteraNuevoPostor.SaldoRetenido, dto.Monto);
 
+        
+    
+       // inicio de transaccion 
+        await _unidadDeTrabajo.InicioTransaccionAsync();
+
+        try
+        {
+            // liberacion de retencion del líder anterior (si existia)
+            if (pujaLiderAnterior is not null)
+            {
+                var billeterasLiderAnterior = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == pujaLiderAnterior.PostorId);
+                var billeteraLiderAnterior = billeterasLiderAnterior.FirstOrDefault();
+
+                if (billeteraLiderAnterior is not null)
+                {
+                    billeteraLiderAnterior.SaldoRetenido -= pujaLiderAnterior.Monto;
+                    _repositorioBilleteras.Modificacion(billeteraLiderAnterior);
+                     
+                    await _repositorioMovimientos.AltaAsync(new MovimientoContable
+                    {
+                        BilleteraId = billeteraLiderAnterior.Id,
+                        Tipo = TipoMovimiento.Liberacion,
+                        Monto = pujaLiderAnterior.Monto,
+                        Concepto = $"Liberación de retención por puja superada en subasta #{subasta.Id}",
+                        FechaMovimiento = fechaHoraActual
+                    });
+                }
+            }
+
         /// retencion de fondos en billetera y registro en ledger
 
         billeteraNuevoPostor.SaldoRetenido += dto.Monto;
@@ -99,6 +128,7 @@ public class ServicioPujas : IServicioPujas
 
         await _repositorioPujas.AltaAsync(puja);
         await _unidadDeTrabajo.ConfirmacionAsync();
+        await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
         return new PujaDto
         {
@@ -108,5 +138,11 @@ public class ServicioPujas : IServicioPujas
             Monto = puja.Monto,
             FechaPuja = puja.FechaPuja
         };
+            }
+        catch
+        {
+            await _unidadDeTrabajo.ReversionTransaccionAsync();
+            throw;
+        }
     }
 }
