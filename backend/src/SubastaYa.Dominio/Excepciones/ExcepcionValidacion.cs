@@ -21,4 +21,14 @@ public class ExcepcionValidacion : ExcepcionDominio
             { campo, new[] { mensaje } }
         };
     }
+
+    
+    public ExcepcionValidacion(string mensaje)
+        : base(mensaje)
+    {
+        Errores = new Dictionary<string, string[]>
+        {
+            { "General", new[] { mensaje } }
+        };
+    }
 }
