@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubastaYa.Aplicacion.Interfaces;
@@ -28,12 +28,9 @@ public static class RegistroInfraestructura
         servicios.AddScoped(typeof(IRepositorio<>), typeof(RepositorioGenerico<>));
         servicios.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
 
-        // Servicios de aplicación
-        servicios.AddScoped<IServicioSubastas, ServicioSubastas>();
+        // Servicios de aplicación vigentes
         servicios.AddScoped<IServicioUsuarios, ServicioUsuarios>();
         servicios.AddScoped<IServicioCategorias, ServicioCategorias>();
-        servicios.AddScoped<IServicioPujas, ServicioPujas>();
-        servicios.AddScoped<IServicioBilleteras, ServicioBilleteras>();
 
         return servicios;
     }

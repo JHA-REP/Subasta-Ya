@@ -1,5 +1,5 @@
 ﻿using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
 
 namespace SubastaYa.Aplicacion.Mapeos;
 
@@ -11,17 +11,8 @@ public static class BilleteraMapeos
         {
             Id = entidad.Id,
             UsuarioId = entidad.UsuarioId,
-            SaldoDisponible = entidad.SaldoDisponible,
-            SaldoRetenido = entidad.SaldoRetenido,
-            Movimientos = entidad.Movimientos.Select(m => new MovimientoContableDto
-            {
-                Id = m.Id,
-                BilleteraId = m.BilleteraId,
-                Monto = m.Monto,
-                Tipo = m.Tipo,
-                FechaHora = m.FechaHora,
-                ReferenciaSubastaId = m.ReferenciaSubastaId
-            }).ToList()
+            Saldo = entidad.SaldoDisponible + entidad.SaldoRetenido,
+            SaldoRetenido = entidad.SaldoRetenido
         };
     }
 }

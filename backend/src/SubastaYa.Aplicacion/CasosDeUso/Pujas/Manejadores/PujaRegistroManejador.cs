@@ -1,26 +1,25 @@
 ﻿using SubastaYa.Aplicacion.CasosDeUso.Pujas.Comandos;
 using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Aplicacion.Mapeos;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
+using SubastaYa.Dominio.Interfaces;
 using SubastaYa.Dominio.Reglas;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 
-//aca tendriamos lo que teniamos antes en serviciopujas
-
 public class PujaRegistroManejador
 {
-    private readonly IRepositorioSubastas _repositorioSubastas;
-    private readonly IRepositorioPujas _repositorioPujas;
-    private readonly IRepositorioBilleteras _repositorioBilleteras;
+    private readonly IRepositorio<Subasta> _repositorioSubastas;
+    private readonly IRepositorio<Puja> _repositorioPujas;
+    private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public PujaRegistroManejador(
-        IRepositorioSubastas repositorioSubastas,
-        IRepositorioPujas repositorioPujas,
-        IRepositorioBilleteras repositorioBilleteras,
+        IRepositorio<Subasta> repositorioSubastas,
+        IRepositorio<Puja> repositorioPujas,
+        IRepositorio<Billetera> repositorioBilleteras,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioSubastas = repositorioSubastas;
@@ -33,30 +32,32 @@ public class PujaRegistroManejador
     {
         var fechaHoraActual = DateTime.UtcNow;
 
-        using var transaccion = await _unidadDeTrabajo.InicioTransaccionAsync();
+        await _unidadDeTrabajo.InicioTransaccionAsync();
 
-        var subasta = await _repositorioSubastas.ObtenerPorIdAsync(comando.SubastaId);
+        var subasta = await _repositorioSubastas.PorIdAsync(comando.SubastaId);
         if (subasta == null)
             throw new ExcepcionValidacion("La subasta especificada no existe.");
 
-        var billetera = await _repositorioBilleteras.ObtenerPorUsuarioIdAsync(comando.PostorId);
+        var billeteras = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == comando.PostorId);
+        var billetera = billeteras.FirstOrDefault();
         if (billetera == null)
             throw new ExcepcionValidacion("La billetera del postor no existe.");
 
-        // validaciones
-        PujaValidacionReglas.ValidacionEstadoSubasta(subasta);
-        PujaValidacionReglas.ValidacionVentanaTemporal(subasta, fechaHoraActual);
-        PujaValidacionReglas.ValidacionPostorDiferenteDeVendedor(subasta, comando.PostorId);
-        PujaValidacionReglas.ValidacionMontoOferta(subasta, comando.Monto);
-        PujaValidacionReglas.ValidacionSaldoDisponible(billetera, comando.Monto);
-
-        // liberar lider anterior
-        var pujas = await _repositorioPujas.ObtenerPorSubastaIdAsync(comando.SubastaId);
+        var pujas = await _repositorioPujas.FiltradasAsync(p => p.SubastaId == comando.SubastaId);
         var pujaLiderAnterior = pujas.OrderByDescending(p => p.Monto).FirstOrDefault();
 
+        // Validaciones
+        PujaValidacionReglas.ValidacionEstadoSubasta(subasta.Activa ? EstadoSubasta.Activa : EstadoSubasta.Finalizada);
+        PujaValidacionReglas.ValidacionVentanaTemporal(subasta.FechaInicio, subasta.FechaFin, fechaHoraActual);
+        PujaValidacionReglas.ValidacionPostorDiferenteDeVendedor(comando.PostorId, subasta.VendedorId);
+        PujaValidacionReglas.ValidacionMontoOferta(comando.Monto, subasta.PrecioInicial, subasta.IncrementoMinimo, pujaLiderAnterior?.Monto);
+        PujaValidacionReglas.ValidacionSaldoDisponible(billetera.SaldoDisponible + billetera.SaldoRetenido, billetera.SaldoRetenido, comando.Monto);
+
+        // Liberar líder anterior
         if (pujaLiderAnterior != null)
         {
-            var billeteraLiderAnterior = await _repositorioBilleteras.ObtenerPorUsuarioIdAsync(pujaLiderAnterior.PostorId);
+            var billeterasLider = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == pujaLiderAnterior.PostorId);
+            var billeteraLiderAnterior = billeterasLider.FirstOrDefault();
             if (billeteraLiderAnterior != null)
             {
                 billeteraLiderAnterior.LiberacionSaldo(pujaLiderAnterior.Monto);
@@ -64,44 +65,44 @@ public class PujaRegistroManejador
                 {
                     Monto = pujaLiderAnterior.Monto,
                     Tipo = TipoMovimiento.Liberacion,
-                    FechaHora = fechaHoraActual,
-                    ReferenciaSubastaId = comando.SubastaId
+                    FechaMovimiento = fechaHoraActual,
+                    Concepto = $"Liberación de puja superada en subasta {comando.SubastaId}"
                 });
                 _repositorioBilleteras.Modificacion(billeteraLiderAnterior);
             }
         }
 
-        // retener saldo nuevo postor
+        // Retener saldo nuevo postor
         billetera.RetencionSaldo(comando.Monto);
         billetera.Movimientos.Add(new MovimientoContable
         {
             Monto = comando.Monto,
             Tipo = TipoMovimiento.Retencion,
-            FechaHora = fechaHoraActual,
-            ReferenciaSubastaId = comando.SubastaId
+            FechaMovimiento = fechaHoraActual,
+            Concepto = $"Retención por puja en subasta {comando.SubastaId}"
         });
         _repositorioBilleteras.Modificacion(billetera);
 
-        // actualizar subasta
+        // Actualizar subasta
         subasta.ActualizacionPrecioActual(comando.Monto);
 
-        // regla Anti-Sniping
+        // Regla Anti-Sniping
         subasta.ExtensionTiempoAntiSniping(fechaHoraActual);
         _repositorioSubastas.Modificacion(subasta);
 
-        // crear la puja
+        // Crear la puja
         var puja = new Puja
         {
             SubastaId = comando.SubastaId,
             PostorId = comando.PostorId,
             Monto = comando.Monto,
-            FechaHora = fechaHoraActual
+            FechaPuja = fechaHoraActual
         };
 
         await _repositorioPujas.AltaAsync(puja);
 
-        await _unidadDeTrabajo.GuardadoCambiosAsync();
-        await transaccion.CommitAsync();
+        await _unidadDeTrabajo.ConfirmacionAsync();
+        await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
         return puja.MapeoDto();
     }

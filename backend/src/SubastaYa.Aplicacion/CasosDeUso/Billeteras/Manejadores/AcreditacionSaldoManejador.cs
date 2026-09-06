@@ -1,19 +1,20 @@
 ﻿using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Comandos;
 using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Aplicacion.Mapeos;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
+using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 
 public class AcreditacionSaldoManejador
 {
-    private readonly IRepositorioBilleteras _repositorioBilleteras;
+    private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public AcreditacionSaldoManejador(
-        IRepositorioBilleteras repositorioBilleteras,
+        IRepositorio<Billetera> repositorioBilleteras,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioBilleteras = repositorioBilleteras;
@@ -22,7 +23,8 @@ public class AcreditacionSaldoManejador
 
     public async Task<BilleteraDto> EjecucionAsync(AcreditacionSaldoComando comando)
     {
-        var billetera = await _repositorioBilleteras.ObtenerPorUsuarioIdAsync(comando.UsuarioId);
+        var billeteras = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == comando.UsuarioId);
+        var billetera = billeteras.FirstOrDefault();
         if (billetera == null)
             throw new ExcepcionValidacion("La billetera del usuario no existe.");
 
@@ -32,11 +34,12 @@ public class AcreditacionSaldoManejador
         {
             Monto = comando.Monto,
             Tipo = TipoMovimiento.Credito,
-            FechaHora = DateTime.UtcNow
+            FechaMovimiento = DateTime.UtcNow,
+            Concepto = "Acreditación simulada de saldo"
         });
 
         _repositorioBilleteras.Modificacion(billetera);
-        await _unidadDeTrabajo.GuardadoCambiosAsync();
+        await _unidadDeTrabajo.ConfirmacionAsync();
 
         return billetera.MapeoDto();
     }

@@ -1,10 +1,10 @@
-using SubastaYa.Dominio.Excepciones;
+﻿using SubastaYa.Dominio.Excepciones;
+using SubastaYa.Dominio.Enumeraciones;
 
-namespace SubastaYa.Dominio.Entities;
+namespace SubastaYa.Dominio.Entidades;
 
-public class Subasta
+public class Subasta : EntidadBase
 {
-    public int Id { get; set; }
     public string Titulo { get; set; } = null!;
     public string Descripcion { get; set; } = null!;
     public decimal PrecioInicial { get; set; }
@@ -14,8 +14,15 @@ public class Subasta
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
     public int VendedorId { get; set; }
-    public bool Activa { get; set; } = true;
+    public int CategoriaId { get; set; }
+    public EstadoSubasta Estado { get; set; } = EstadoSubasta.Activa;
+    public bool Activa => Estado == EstadoSubasta.Activa;
     public byte[] RowVersion { get; set; } = null!;
+
+    // Navegación
+    public Categoria? Categoria { get; set; }
+    public Usuario? Vendedor { get; set; }
+    public ICollection<Puja> Pujas { get; set; } = [];
 
     public void ExtensionTiempoAntiSniping(DateTime fechaHoraActual)
     {

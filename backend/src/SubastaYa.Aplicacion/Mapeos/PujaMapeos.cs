@@ -1,5 +1,5 @@
 ﻿using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
 
 namespace SubastaYa.Aplicacion.Mapeos;
 
@@ -13,7 +13,7 @@ public static class PujaMapeos
             SubastaId = entidad.SubastaId,
             PostorId = entidad.PostorId,
             Monto = entidad.Monto,
-            FechaHora = entidad.FechaHora
+            FechaPuja = entidad.FechaPuja
         };
     }
 }

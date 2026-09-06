@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SubastaYa.Dominio.Entidades;
-using SubastaYa.Dominio.Enumeraciones;
 
 namespace SubastaYa.Infraestructura.Configuraciones;
 
@@ -24,7 +23,7 @@ public class SubastaConfiguracion : IEntityTypeConfiguration<Subasta>
         constructor.Property(s => s.Descripcion)
             .HasMaxLength(2000);
 
-        constructor.Property(s => s.PrecioBase)
+        constructor.Property(s => s.PrecioInicial)
             .IsRequired()
             .HasPrecision(18, 2);
 
@@ -39,11 +38,11 @@ public class SubastaConfiguracion : IEntityTypeConfiguration<Subasta>
         constructor.Property(s => s.FechaFin)
             .IsRequired();
 
-        // Optimistic Locking — crítico para pujas concurrentes
-        constructor.Property(s => s.Version)
+        // Optimistic Locking
+        constructor.Property(s => s.RowVersion)
             .IsRowVersion();
 
-        // Relación: Subasta 1 → N Pujas
+        // Relación: Subasta 1 — N Pujas
         constructor.HasMany(s => s.Pujas)
             .WithOne(p => p.Subasta)
             .HasForeignKey(p => p.SubastaId)

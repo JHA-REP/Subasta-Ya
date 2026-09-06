@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Dominio.Entidades;
@@ -95,14 +95,14 @@ public static class DatosSemilla
             {
                 Id = 1,
                 UsuarioId = 1,
-                Saldo = 0m,
+                SaldoDisponible = 0m,
                 SaldoRetenido = 0m
             },
             new Billetera
             {
                 Id = 2,
                 UsuarioId = 2,
-                Saldo = 5000m,
+                SaldoDisponible = 5000m,
                 SaldoRetenido = 0m
             },
             // maria_compradora: billetera con saldo retenido ✓
@@ -110,7 +110,7 @@ public static class DatosSemilla
             {
                 Id = 3,
                 UsuarioId = 3,
-                Saldo = 10000m,
+                SaldoDisponible = 10000m,
                 SaldoRetenido = 3500m
             },
             // pedro_postor: usuario sin fondos ✓
@@ -118,14 +118,14 @@ public static class DatosSemilla
             {
                 Id = 4,
                 UsuarioId = 4,
-                Saldo = 200m,
+                SaldoDisponible = 200m,
                 SaldoRetenido = 0m
             },
             new Billetera
             {
                 Id = 5,
                 UsuarioId = 5,
-                Saldo = 50000m,
+                SaldoDisponible = 50000m,
                 SaldoRetenido = 1500m
             }
         );
@@ -150,7 +150,7 @@ public static class DatosSemilla
                 Id = 1,
                 Titulo = "Notebook Gamer MSI",
                 Descripcion = "Notebook gamer MSI con RTX 4060, 16GB RAM, 512GB SSD. Estado impecable.",
-                PrecioBase = 5000m,
+                PrecioInicial = 5000m,
                 CategoriaId = 1,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Activa,
@@ -163,7 +163,7 @@ public static class DatosSemilla
                 Id = 2,
                 Titulo = "Cuadro Óleo Original",
                 Descripcion = "Cuadro al óleo original de artista emergente. Técnica mixta sobre lienzo 80x60.",
-                PrecioBase = 8000m,
+                PrecioInicial = 8000m,
                 CategoriaId = 4,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Activa,
@@ -176,7 +176,7 @@ public static class DatosSemilla
                 Id = 3,
                 Titulo = "Bicicleta Montaña R29",
                 Descripcion = "Bicicleta de montaña rodado 29, cuadro de aluminio, 21 velocidades.",
-                PrecioBase = 3000m,
+                PrecioInicial = 3000m,
                 CategoriaId = 3,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Pendiente,
@@ -189,7 +189,7 @@ public static class DatosSemilla
                 Id = 4,
                 Titulo = "Smart TV 55 Pulgadas",
                 Descripcion = "Smart TV LED 55 pulgadas 4K UHD con sistema operativo integrado.",
-                PrecioBase = 4000m,
+                PrecioInicial = 4000m,
                 CategoriaId = 1,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Finalizada,
@@ -202,7 +202,7 @@ public static class DatosSemilla
                 Id = 5,
                 Titulo = "Set de Sartenes Profesional",
                 Descripcion = "Set de 5 sartenes profesionales con revestimiento cerámico antiadherente.",
-                PrecioBase = 1500m,
+                PrecioInicial = 1500m,
                 CategoriaId = 2,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Finalizada,
@@ -319,3 +319,4 @@ public static class DatosSemilla
         );
     }
 }
+

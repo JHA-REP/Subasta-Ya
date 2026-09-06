@@ -1,5 +1,6 @@
 ﻿using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
 
 namespace SubastaYa.Aplicacion.Mapeos;
 
@@ -12,14 +13,13 @@ public static class SubastaMapeos
             Id = entidad.Id,
             Titulo = entidad.Titulo,
             Descripcion = entidad.Descripcion,
-            PrecioInicial = entidad.PrecioInicial,
-            PrecioActual = entidad.PrecioActual,
+            PrecioBase = entidad.PrecioInicial,
             IncrementoMinimo = entidad.IncrementoMinimo,
             ImagenUrl = entidad.ImagenUrl,
             FechaInicio = entidad.FechaInicio,
             FechaFin = entidad.FechaFin,
             VendedorId = entidad.VendedorId,
-            Activa = entidad.Activa
+            Estado = entidad.Activa ? EstadoSubasta.Activa : EstadoSubasta.Finalizada
         };
     }
 }

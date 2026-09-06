@@ -1,14 +1,16 @@
-using SubastaYa.Dominio.Excepciones;
+﻿using SubastaYa.Dominio.Excepciones;
 
-namespace SubastaYa.Dominio.Entities;
+namespace SubastaYa.Dominio.Entidades;
 
-public class Billetera
+public class Billetera : EntidadBase
 {
-    public int Id { get; set; }
     public int UsuarioId { get; set; }
-    public decimal SaldoDisponible { get; private set; }
-    public decimal SaldoRetenido { get; private set; }
+    public decimal SaldoDisponible { get; set; }
+    public decimal SaldoRetenido { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 
+    // Navegación
+    public Usuario? Usuario { get; set; }
     public List<MovimientoContable> Movimientos { get; set; } = new();
 
     public void AcreditacionSaldo(decimal monto)

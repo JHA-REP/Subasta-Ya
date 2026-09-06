@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SubastaYa.Dominio.Entidades;
 
@@ -16,7 +16,7 @@ public class BilleteraConfiguracion : IEntityTypeConfiguration<Billetera>
 
         constructor.HasKey(b => b.Id);
 
-        constructor.Property(b => b.Saldo)
+        constructor.Property(b => b.SaldoDisponible)
             .IsRequired()
             .HasPrecision(18, 2);
 
@@ -24,14 +24,14 @@ public class BilleteraConfiguracion : IEntityTypeConfiguration<Billetera>
             .IsRequired()
             .HasPrecision(18, 2);
 
-        // Optimistic Locking — crítico para operaciones financieras concurrentes
-        constructor.Property(b => b.Version)
+        // Optimistic Locking
+        constructor.Property(b => b.RowVersion)
             .IsRowVersion();
 
         constructor.HasIndex(b => b.UsuarioId)
             .IsUnique();
 
-        // Relación: Billetera 1 → N MovimientosContables
+        // Relación: Billetera 1 — N MovimientosContables
         constructor.HasMany(b => b.Movimientos)
             .WithOne(m => m.Billetera)
             .HasForeignKey(m => m.BilleteraId)

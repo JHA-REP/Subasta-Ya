@@ -1,18 +1,18 @@
 ﻿using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
 using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Aplicacion.Mapeos;
-using SubastaYa.Dominio.Entities;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 
 public class NuevaSubastaManejador
 {
-    private readonly IRepositorioSubastas _repositorioSubastas;
+    private readonly IRepositorio<Subasta> _repositorioSubastas;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public NuevaSubastaManejador(
-        IRepositorioSubastas repositorioSubastas,
+        IRepositorio<Subasta> repositorioSubastas,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioSubastas = repositorioSubastas;
@@ -32,12 +32,13 @@ public class NuevaSubastaManejador
             FechaInicio = comando.FechaInicio,
             FechaFin = comando.FechaFin,
             VendedorId = comando.VendedorId,
-            Activa = true
+            Estado = SubastaYa.Dominio.Enumeraciones.EstadoSubasta.Activa
         };
 
         await _repositorioSubastas.AltaAsync(subasta);
-        await _unidadDeTrabajo.GuardadoCambiosAsync();
+        await _unidadDeTrabajo.ConfirmacionAsync();
 
         return subasta.MapeoDto();
     }
 }
+
