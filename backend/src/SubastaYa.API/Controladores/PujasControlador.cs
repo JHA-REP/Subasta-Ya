@@ -1,42 +1,28 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Comandos;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 
-namespace SubastaYa.API.Controladores;
+namespace SubastaYa.Api.Controladores;
 
-/// <summary>
-/// Controlador REST para pujas dentro de una subasta.
-/// Ruta anidada: /api/subastas/{subastaId}/pujas
-/// </summary>
+//  endpoint de pujas con manejadores cqrs
 [ApiController]
-[Route("api/subastas/{subastaId:int}/pujas")]
+[Route("api/pujas")]
 public class PujasControlador : ControllerBase
 {
-    private readonly IServicioPujas _servicioPujas;
-
-    public PujasControlador(IServicioPujas servicioPujas)
+    // listado de pujas por subasta
+    [HttpGet("subasta/{subastaId:int}")]
+    public async Task<IActionResult> ListadoPorSubasta(int subastaId, [FromServices] ListadoPujasPorSubastaManejador manejador)
     {
-        _servicioPujas = servicioPujas;
+        var resultado = await manejador.EjecucionAsync(new ListadoPujasPorSubastaConsulta(subastaId));
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Listado de pujas de una subasta.
-    /// </summary>
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<PujaDto>>> ListadoPorSubasta(int subastaId)
-    {
-        var pujas = await _servicioPujas.ListadoPorSubastaAsync(subastaId);
-        return Ok(pujas);
-    }
-
-    /// <summary>
-    /// Alta de una nueva puja en una subasta.
-    /// </summary>
+    // creacion de puja con reglas de negocio y transaccion
     [HttpPost]
-    public async Task<ActionResult<PujaDto>> Nueva(int subastaId, [FromBody] NuevaPujaDto dto)
+    public async Task<IActionResult> Creacion([FromBody] PujaRegistroComando comando, [FromServices] PujaRegistroManejador manejador)
     {
-        dto.SubastaId = subastaId;
-        var puja = await _servicioPujas.NuevaAsync(dto);
-        return CreatedAtAction(nameof(ListadoPorSubasta), new { subastaId }, puja);
+        var resultado = await manejador.EjecucionAsync(comando);
+        return Ok(resultado);
     }
 }

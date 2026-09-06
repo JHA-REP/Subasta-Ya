@@ -1,6 +1,10 @@
 using System.Text.Json.Serialization;
 using SubastaYa.API.Middleware;
 using SubastaYa.Infraestructura.Extensiones;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
+
 
 var constructor = WebApplication.CreateBuilder(args);
 
@@ -21,6 +25,15 @@ constructor.Services.AddSwaggerGen();
 
 // Infraestructura (EF Core, Repositorios, Servicios)
 constructor.Services.ConInfraestructura(constructor.Configuration);
+
+//  registro de manejadores cqrs de aplicacion
+constructor.Services.AddScoped<NuevaSubastaManejador>();
+constructor.Services.AddScoped<SubastaPorIdManejador>();
+constructor.Services.AddScoped<ListadoSubastasManejador>();
+constructor.Services.AddScoped<PujaRegistroManejador>();
+constructor.Services.AddScoped<ListadoPujasPorSubastaManejador>();
+constructor.Services.AddScoped<AcreditacionSaldoManejador>();
+constructor.Services.AddScoped<BilleteraPorUsuarioManejador>();
 
 // CORS — preparación para frontend React
 constructor.Services.AddCors(opciones =>

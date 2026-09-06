@@ -1,51 +1,37 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 
-namespace SubastaYa.API.Controladores;
+namespace SubastaYa.Api.Controladores;
 
-/// <summary>
-/// Controlador REST para subastas.
-/// Rutas con sustantivos plurales, sin verbos.
-/// </summary>
+// endpoint de subastas con manejadores cqrs
 [ApiController]
 [Route("api/subastas")]
 public class SubastasControlador : ControllerBase
 {
-    private readonly IServicioSubastas _servicioSubastas;
-
-    public SubastasControlador(IServicioSubastas servicioSubastas)
-    {
-        _servicioSubastas = servicioSubastas;
-    }
-
-    /// <summary>
-    /// Listado de todas las subastas.
-    /// </summary>
+    // listado de subastas
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SubastaDto>>> Listado()
+    public async Task<IActionResult> Listado([FromServices] ListadoSubastasManejador manejador)
     {
-        var subastas = await _servicioSubastas.ListadoAsync();
-        return Ok(subastas);
+        var resultado = await manejador.EjecucionAsync(new ListadoSubastasConsulta());
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Detalle de una subasta por su identificador.
-    /// </summary>
+    // detalle por id
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<SubastaDto>> DetallePorId(int id)
+    public async Task<IActionResult> DetallePorId(int id, [FromServices] SubastaPorIdManejador manejador)
     {
-        var subasta = await _servicioSubastas.DetallePorIdAsync(id);
-        return Ok(subasta);
+        var resultado = await manejador.EjecucionAsync(new SubastaPorIdConsulta(id));
+        if (resultado == null) return NotFound();
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Alta de una nueva subasta.
-    /// </summary>
+    // creacion de subasta
     [HttpPost]
-    public async Task<ActionResult<SubastaDto>> Nueva([FromBody] NuevaSubastaDto dto)
+    public async Task<IActionResult> Creacion([FromBody] NuevaSubastaComando comando, [FromServices] NuevaSubastaManejador manejador)
     {
-        var subasta = await _servicioSubastas.NuevaAsync(dto);
-        return CreatedAtAction(nameof(DetallePorId), new { id = subasta.Id }, subasta);
+        var resultado = await manejador.EjecucionAsync(comando);
+        return CreatedAtAction(nameof(DetallePorId), new { id = resultado.Id }, resultado);
     }
 }

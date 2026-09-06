@@ -1,49 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Comandos;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 
-namespace SubastaYa.API.Controladores;
+namespace SubastaYa.Api.Controladores;
 
-/// <summary>
-/// Controlador REST para billeteras y movimientos contables.
-/// </summary>
+//  endpoint de billeteras con manejadores cqrs
 [ApiController]
 [Route("api/billeteras")]
 public class BilleterasControlador : ControllerBase
 {
-    private readonly IServicioBilleteras _servicioBilleteras;
-
-    public BilleterasControlador(IServicioBilleteras servicioBilleteras)
-    {
-        _servicioBilleteras = servicioBilleteras;
-    }
-
-    /// <summary>
-    /// Detalle de la billetera de un usuario.
-    /// </summary>
+    // detalle de billetera por usuario
     [HttpGet("usuario/{usuarioId:int}")]
-    public async Task<ActionResult<BilleteraDto>> DetallePorUsuario(int usuarioId)
+    public async Task<IActionResult> DetallePorUsuario(int usuarioId, [FromServices] BilleteraPorUsuarioManejador manejador)
     {
-        var billetera = await _servicioBilleteras.DetallePorUsuarioIdAsync(usuarioId);
-        return Ok(billetera);
+        var resultado = await manejador.EjecucionAsync(new BilleteraPorUsuarioConsulta(usuarioId));
+        if (resultado == null) return NotFound();
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Listado de movimientos contables de una billetera.
-    /// </summary>
-    [HttpGet("{billeteraId:int}/movimientos")]
-    public async Task<ActionResult<IEnumerable<MovimientoContableDto>>> MovimientosPorBilletera(int billeteraId)
+    // acreditacion simulada de saldo
+    [HttpPost("usuario/{usuarioId:int}/acreditaciones")]
+    public async Task<IActionResult> AcreditacionSimulada(int usuarioId, [FromBody] AcreditacionSaldoComando comando, [FromServices] AcreditacionSaldoManejador manejador)
     {
-        var movimientos = await _servicioBilleteras.MovimientosPorBilleteraIdAsync(billeteraId);
-        return Ok(movimientos);
+        comando.UsuarioId = usuarioId;
+        var resultado = await manejador.EjecucionAsync(comando);
+        return Ok(resultado);
     }
-
-+   // carga simulada de saldo ficticio a la billetera de un usuario
-+   [HttpPost("usuario/{usuarioId:int}/acreditaciones")]
-+   public async Task<ActionResult<BilleteraDto>> AcreditacionSimulada(int usuarioId, [FromBody] AcreditacionDto dto)
-+   {
-+       var billetera = await _servicioBilleteras.AcreditacionSaldoSimuladaAsync(usuarioId, dto.Monto);
-+       return Ok(billetera);
-+   }
-
 }
