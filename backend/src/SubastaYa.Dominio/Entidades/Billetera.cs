@@ -1,21 +1,45 @@
-namespace SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Excepciones;
 
-/// <summary>
-/// Billetera virtual asociada a un usuario. Controla saldo disponible y retenido.
-/// Protegida con Optimistic Locking (RowVersion).
-/// </summary>
-public class Billetera : EntidadBase
+namespace SubastaYa.Dominio.Entities;
+
+public class Billetera
 {
+    public int Id { get; set; }
     public int UsuarioId { get; set; }
-    public decimal Saldo { get; set; }
-    public decimal SaldoRetenido { get; set; }
+    public decimal SaldoDisponible { get; private set; }
+    public decimal SaldoRetenido { get; private set; }
 
-    /// <summary>
-    /// Token de concurrencia optimista — crítico para operaciones financieras.
-    /// </summary>
-    public byte[] Version { get; set; } = [];
+    public List<MovimientoContable> Movimientos { get; set; } = new();
 
-    // Navegación
-    public Usuario? Usuario { get; set; }
-    public ICollection<MovimientoContable> Movimientos { get; set; } = [];
+    public void AcreditacionSaldo(decimal monto)
+    {
+        if (monto <= 0)
+            throw new ExcepcionValidacion("El monto a acreditar debe ser mayor a cero.");
+
+        SaldoDisponible += monto;
+    }
+
+    public void RetencionSaldo(decimal monto)
+    {
+        if (monto <= 0)
+            throw new ExcepcionValidacion("El monto a retener debe ser mayor a cero.");
+
+        if (SaldoDisponible < monto)
+            throw new ExcepcionValidacion("Saldo disponible insuficiente para realizar la puja.");
+
+        SaldoDisponible -= monto;
+        SaldoRetenido += monto;
+    }
+
+    public void LiberacionSaldo(decimal monto)
+    {
+        if (monto <= 0)
+            throw new ExcepcionValidacion("El monto a liberar debe ser mayor a cero.");
+
+        if (SaldoRetenido < monto)
+            throw new ExcepcionValidacion("No hay saldo retenido suficiente para liberar.");
+
+        SaldoRetenido -= monto;
+        SaldoDisponible += monto;
+    }
 }
