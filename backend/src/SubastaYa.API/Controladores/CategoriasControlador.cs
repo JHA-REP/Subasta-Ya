@@ -1,40 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
 
 namespace SubastaYa.API.Controladores;
 
-/// <summary>
-/// Controlador REST para categorías.
-/// </summary>
+// endpoint de categorias con manejadores cqrs
 [ApiController]
 [Route("api/categorias")]
 public class CategoriasControlador : ControllerBase
 {
-    private readonly IServicioCategorias _servicioCategorias;
-
-    public CategoriasControlador(IServicioCategorias servicioCategorias)
-    {
-        _servicioCategorias = servicioCategorias;
-    }
-
-    /// <summary>
-    /// Listado de todas las categorías.
-    /// </summary>
+    // listado de categorias
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoriaDto>>> Listado()
+    public async Task<IActionResult> Listado([FromServices] ListadoCategoriasManejador manejador)
     {
-        var categorias = await _servicioCategorias.ListadoAsync();
-        return Ok(categorias);
+        var resultado = await manejador.EjecucionAsync(new ListadoCategoriasConsulta());
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Detalle de una categoría por su identificador.
-    /// </summary>
+    // detalle por id
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<CategoriaDto>> DetallePorId(int id)
+    public async Task<IActionResult> DetallePorId(int id, [FromServices] CategoriaPorIdManejador manejador)
     {
-        var categoria = await _servicioCategorias.DetallePorIdAsync(id);
-        return Ok(categoria);
+        var resultado = await manejador.EjecucionAsync(new CategoriaPorIdConsulta(id));
+        return Ok(resultado);
     }
 }

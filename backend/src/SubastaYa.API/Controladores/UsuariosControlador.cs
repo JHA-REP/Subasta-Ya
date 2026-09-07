@@ -1,40 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Manejadores;
 
 namespace SubastaYa.API.Controladores;
 
-/// <summary>
-/// Controlador REST para usuarios.
-/// </summary>
+// endpoint de usuarios con manejadores cqrs
 [ApiController]
 [Route("api/usuarios")]
 public class UsuariosControlador : ControllerBase
 {
-    private readonly IServicioUsuarios _servicioUsuarios;
-
-    public UsuariosControlador(IServicioUsuarios servicioUsuarios)
-    {
-        _servicioUsuarios = servicioUsuarios;
-    }
-
-    /// <summary>
-    /// Listado de todos los usuarios.
-    /// </summary>
+    // listado de usuarios
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UsuarioDto>>> Listado()
+    public async Task<IActionResult> Listado([FromServices] ListadoUsuariosManejador manejador)
     {
-        var usuarios = await _servicioUsuarios.ListadoAsync();
-        return Ok(usuarios);
+        var resultado = await manejador.EjecucionAsync(new ListadoUsuariosConsulta());
+        return Ok(resultado);
     }
 
-    /// <summary>
-    /// Detalle de un usuario por su identificador.
-    /// </summary>
+    // detalle por id
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<UsuarioDto>> DetallePorId(int id)
+    public async Task<IActionResult> DetallePorId(int id, [FromServices] UsuarioPorIdManejador manejador)
     {
-        var usuario = await _servicioUsuarios.DetallePorIdAsync(id);
-        return Ok(usuario);
+        var resultado = await manejador.EjecucionAsync(new UsuarioPorIdConsulta(id));
+        return Ok(resultado);
     }
 }

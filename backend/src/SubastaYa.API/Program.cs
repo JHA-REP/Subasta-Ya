@@ -4,7 +4,8 @@ using SubastaYa.Infraestructura.Extensiones;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
-
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Manejadores;
 
 var constructor = WebApplication.CreateBuilder(args);
 
@@ -30,10 +31,19 @@ constructor.Services.ConInfraestructura(constructor.Configuration);
 constructor.Services.AddScoped<NuevaSubastaManejador>();
 constructor.Services.AddScoped<SubastaPorIdManejador>();
 constructor.Services.AddScoped<ListadoSubastasManejador>();
+
 constructor.Services.AddScoped<PujaRegistroManejador>();
 constructor.Services.AddScoped<ListadoPujasPorSubastaManejador>();
+
 constructor.Services.AddScoped<AcreditacionSaldoManejador>();
 constructor.Services.AddScoped<BilleteraPorUsuarioManejador>();
+
+constructor.Services.AddScoped<ListadoCategoriasManejador>();
+constructor.Services.AddScoped<CategoriaPorIdManejador>();
+
+constructor.Services.AddScoped<ListadoUsuariosManejador>();
+constructor.Services.AddScoped<UsuarioPorIdManejador>();
+
 
 // CORS — preparación para frontend React
 constructor.Services.AddCors(opciones =>
