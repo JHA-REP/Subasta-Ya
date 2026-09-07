@@ -13,8 +13,9 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 /// Contiene toda la lógica de negocio para:
 /// - Determinación de ganador o subasta desierta.
 /// - Liquidación financiera (débito ganador, crédito vendedor).
-/// - Registro de movimientos contables.
+/// - Registro de movimientos contables y de auditoría.
 /// - Notificación en tiempo real via INotificadorSubastas.
+/// Invocado exclusivamente por el ProcesadorSubastas (BackgroundService).
 /// </summary>
 public class SubastaFinalizacionManejador
 {
@@ -24,6 +25,7 @@ public class SubastaFinalizacionManejador
     private readonly IRepositorio<Usuario> _repositorioUsuarios;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
     private readonly INotificadorSubastas _notificador;
+    private readonly IAuditoriaServicio _auditoria;
 
     public SubastaFinalizacionManejador(
         IRepositorio<Subasta> repositorioSubastas,
@@ -31,7 +33,8 @@ public class SubastaFinalizacionManejador
         IRepositorio<Billetera> repositorioBilleteras,
         IRepositorio<Usuario> repositorioUsuarios,
         IUnidadDeTrabajo unidadDeTrabajo,
-        INotificadorSubastas notificador)
+        INotificadorSubastas notificador,
+        IAuditoriaServicio auditoria)
     {
         _repositorioSubastas = repositorioSubastas;
         _repositorioPujas = repositorioPujas;
@@ -39,10 +42,11 @@ public class SubastaFinalizacionManejador
         _repositorioUsuarios = repositorioUsuarios;
         _unidadDeTrabajo = unidadDeTrabajo;
         _notificador = notificador;
+        _auditoria = auditoria;
     }
 
     /// <summary>
-    /// Ejecución del procesamiento de subastas vencidas.
+    /// Procesamiento de todas las subastas activas cuya fecha de finalización fue alcanzada.
     /// Retorna el listado de liquidaciones realizadas en el ciclo.
     /// </summary>
     public async Task<IEnumerable<ResultadoLiquidacionDto>> EjecucionAsync(SubastaFinalizacionComando comando)
@@ -50,36 +54,33 @@ public class SubastaFinalizacionManejador
         var resultados = new List<ResultadoLiquidacionDto>();
         var fechaCorte = comando.FechaCorte ?? DateTime.UtcNow;
 
-        // Consulta de subastas activas cuya fecha de finalización fue alcanzada
+        // Solo subastas activas vencidas
         var subastasVencidas = await _repositorioSubastas.FiltradasAsync(
             s => s.Estado == EstadoSubasta.Activa && s.FechaFin <= fechaCorte);
 
         foreach (var subasta in subastasVencidas)
         {
-            // Validaciones de dominio
             SubastaFinalizacionReglas.ValidacionEstadoParaFinalizacion(subasta.Estado);
             SubastaFinalizacionReglas.ValidacionFechaVencimiento(subasta.FechaFin, fechaCorte);
 
             var pujas = await _repositorioPujas.FiltradasAsync(p => p.SubastaId == subasta.Id);
             var listaPujas = pujas.OrderByDescending(p => p.Monto).ToList();
 
+            ResultadoLiquidacionDto resultado;
             if (listaPujas.Count > 0)
-            {
-                var resultado = await LiquidacionConGanadorAsync(subasta, listaPujas, fechaCorte);
-                resultados.Add(resultado);
-            }
+                resultado = await LiquidacionConGanadorAsync(subasta, listaPujas, fechaCorte);
             else
-            {
-                var resultado = await DeclaracionDesertaAsync(subasta, fechaCorte);
-                resultados.Add(resultado);
-            }
+                resultado = await DeclaracionDesertaAsync(subasta, fechaCorte);
+
+            resultados.Add(resultado);
         }
 
         return resultados;
     }
 
     /// <summary>
-    /// Liquidación de subasta con ganador: débito, crédito, movimientos y notificación.
+    /// Liquidación de subasta con ganador: débito, crédito, movimientos, auditoría y notificación.
+    /// Protegida por Optimistic Locking (RowVersion) para evitar doble liquidación.
     /// </summary>
     private async Task<ResultadoLiquidacionDto> LiquidacionConGanadorAsync(
         Subasta subasta, List<Puja> pujasOrdenadas, DateTime fechaCorte)
@@ -95,7 +96,7 @@ public class SubastaFinalizacionManejador
             subasta.ResultadoFinalizacion(pujaGanadora.PostorId, pujaGanadora.Monto);
             _repositorioSubastas.Modificacion(subasta);
 
-            // 2. Débito al ganador: confirmar retención (saldo retenido → 0)
+            // 2. Débito al ganador
             var billeterasGanador = await _repositorioBilleteras
                 .FiltradasAsync(b => b.UsuarioId == pujaGanadora.PostorId);
             var billeteraGanador = billeterasGanador.First();
@@ -111,7 +112,7 @@ public class SubastaFinalizacionManejador
             _repositorioBilleteras.Modificacion(billeteraGanador);
             contadorMovimientos++;
 
-            // 3. Crédito al vendedor: acreditación del monto liquidado
+            // 3. Crédito al vendedor
             var billeterasVendedor = await _repositorioBilleteras
                 .FiltradasAsync(b => b.UsuarioId == subasta.VendedorId);
             var billeteraVendedor = billeterasVendedor.First();
@@ -127,13 +128,71 @@ public class SubastaFinalizacionManejador
             _repositorioBilleteras.Modificacion(billeteraVendedor);
             contadorMovimientos++;
 
-            // Persistencia transaccional
+            // 4. Liberar retenciones de todos los perdedores
+            var perdedores = pujasOrdenadas.Skip(1)
+                .GroupBy(p => p.PostorId)
+                .Select(g => g.First())
+                .ToList();
+
+            foreach (var pujaPerdedor in perdedores)
+            {
+                var billeterasPerdedor = await _repositorioBilleteras
+                    .FiltradasAsync(b => b.UsuarioId == pujaPerdedor.PostorId);
+                var billeteraPerdedor = billeterasPerdedor.FirstOrDefault();
+                if (billeteraPerdedor is null) continue;
+
+                billeteraPerdedor.LiberacionSaldo(pujaPerdedor.Monto);
+                billeteraPerdedor.Movimientos.Add(new MovimientoContable
+                {
+                    Tipo = TipoMovimiento.Liberacion,
+                    Monto = pujaPerdedor.Monto,
+                    Concepto = $"Liberación por subasta no ganada #{subasta.Id} — {subasta.Titulo}",
+                    FechaMovimiento = fechaCorte
+                });
+                _repositorioBilleteras.Modificacion(billeteraPerdedor);
+                contadorMovimientos++;
+            }
+
+            // Persistencia transaccional (Optimistic Locking via RowVersion protege contra doble ejecución)
             await _unidadDeTrabajo.ConfirmacionAsync();
             await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
-            // 4. Notificación en tiempo real (fuera de la transacción)
+            // === Post-transacción: auditoría y notificaciones ===
+
             var ganador = await _repositorioUsuarios.PorIdAsync(pujaGanadora.PostorId);
 
+            // Auditoría: cambio de estado
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.CambioEstadoSubasta,
+                nameof(Subasta),
+                subasta.Id,
+                new { estadoAnterior = nameof(EstadoSubasta.Activa), estadoNuevo = nameof(EstadoSubasta.Finalizada) },
+                "Worker");
+
+            // Auditoría: liquidación
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.LiquidacionCompletada,
+                nameof(Subasta),
+                subasta.Id,
+                new
+                {
+                    ganadorId = pujaGanadora.PostorId,
+                    ganadorAlias = ganador?.Alias,
+                    montoFinal = pujaGanadora.Monto,
+                    movimientosGenerados = contadorMovimientos,
+                    fechaCorte
+                },
+                "Worker");
+
+            // Auditoría: finalización Worker
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.FinalizacionWorker,
+                nameof(Subasta),
+                subasta.Id,
+                new { cicloFecha = fechaCorte },
+                "Worker");
+
+            // Notificación en tiempo real
             await _notificador.EventoSubastaFinalizada(new SubastaFinalizadaDto
             {
                 SubastaId = subasta.Id,
@@ -162,7 +221,7 @@ public class SubastaFinalizacionManejador
     }
 
     /// <summary>
-    /// Declaración de subasta desierta: cambio de estado y notificación.
+    /// Declaración de subasta desierta: cambio de estado, auditoría y notificación.
     /// </summary>
     private async Task<ResultadoLiquidacionDto> DeclaracionDesertaAsync(
         Subasta subasta, DateTime fechaCorte)
@@ -177,7 +236,29 @@ public class SubastaFinalizacionManejador
             await _unidadDeTrabajo.ConfirmacionAsync();
             await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
-            // Notificación en tiempo real (fuera de la transacción)
+            // Auditoría
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.DeclaracionDesierta,
+                nameof(Subasta),
+                subasta.Id,
+                new { titulo = subasta.Titulo, fechaCorte },
+                "Worker");
+
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.CambioEstadoSubasta,
+                nameof(Subasta),
+                subasta.Id,
+                new { estadoAnterior = nameof(EstadoSubasta.Activa), estadoNuevo = nameof(EstadoSubasta.Desierta) },
+                "Worker");
+
+            await _auditoria.RegistroAsync(
+                TipoAccionAuditoria.FinalizacionWorker,
+                nameof(Subasta),
+                subasta.Id,
+                new { cicloFecha = fechaCorte, resultado = "Desierta" },
+                "Worker");
+
+            // Notificación en tiempo real
             await _notificador.EventoSubastaDesierta(subasta.Id);
 
             return new ResultadoLiquidacionDto
