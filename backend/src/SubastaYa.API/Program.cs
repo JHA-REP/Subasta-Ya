@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
 using SubastaYa.API.Middleware;
-using SubastaYa.Infraestructura.Extensiones;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Manejadores;
 using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Infraestructura.Extensiones;
 using SubastaYa.Infraestructura.TiempoReal;
 
 var constructor = WebApplication.CreateBuilder(args);
@@ -26,15 +26,14 @@ constructor.Services.AddControllers()
 constructor.Services.AddEndpointsApiExplorer();
 constructor.Services.AddSwaggerGen();
 
-// Infraestructura (EF Core, Repositorios, Servicios)
+// Infraestructura (EF Core, Repositorios, Auditoría, Manejadores críticos)
 constructor.Services.ConInfraestructura(constructor.Configuration);
 
-//  registro de manejadores cqrs de aplicacion
+// Manejadores CQRS de Aplicación (no registrados en Infraestructura por no depender de ella)
 constructor.Services.AddScoped<NuevaSubastaManejador>();
 constructor.Services.AddScoped<SubastaPorIdManejador>();
 constructor.Services.AddScoped<ListadoSubastasManejador>();
 
-constructor.Services.AddScoped<PujaRegistroManejador>();
 constructor.Services.AddScoped<ListadoPujasPorSubastaManejador>();
 
 constructor.Services.AddScoped<AcreditacionSaldoManejador>();
@@ -50,10 +49,13 @@ constructor.Services.AddScoped<UsuarioPorIdManejador>();
 constructor.Services.AddSignalR();
 constructor.Services.AddScoped<INotificadorSubastas, NotificadorSubastasSignalR>();
 
-// Worker de procesamiento de subastas como BackgroundService
+// BackgroundServices:
+// 1. ProcesadorSubastas — detecta y liquida subastas vencidas cada 30 s
 constructor.Services.AddHostedService<ProcesadorSubastas>();
+// 2. TemporizadorSubastas — emite estadoTemporizador cada 10 s
+constructor.Services.AddHostedService<TemporizadorSubastas>();
 
-// CORS — preparación para frontend React
+// CORS — preparación para frontend React/Next.js
 constructor.Services.AddCors(opciones =>
 {
     opciones.AddPolicy("PermitirFrontend", politica =>
@@ -61,7 +63,7 @@ constructor.Services.AddCors(opciones =>
         politica.WithOrigins("http://localhost:5173", "http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // Necesario para SignalR
+            .AllowCredentials(); // Necesario para SignalR WebSocket
     });
 });
 
@@ -69,7 +71,7 @@ var app = constructor.Build();
 
 // === Pipeline de middleware ===
 
-// Manejo global de errores — debe ser el primero del pipeline
+// Manejo global de errores — primero del pipeline
 app.UseMiddleware<ManejadorErroresMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -87,7 +89,7 @@ app.UseCors("PermitirFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-// SignalR — Hub de subastas en tiempo real
+// SignalR — Hub de subastas
 app.MapHub<SubastaHub>("/hubs/subastas");
 
 app.Run();
