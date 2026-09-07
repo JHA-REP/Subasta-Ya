@@ -20,6 +20,7 @@ public class SubastaYaDbContext : DbContext
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Subasta> Subastas => Set<Subasta>();
     public DbSet<Puja> Pujas => Set<Puja>();
+    public DbSet<RegistroAuditoria> AuditoriaRegistros => Set<RegistroAuditoria>();
 
     protected override void OnModelCreating(ModelBuilder constructor)
     {
@@ -32,6 +33,7 @@ public class SubastaYaDbContext : DbContext
         constructor.ApplyConfiguration(new CategoriaConfiguracion());
         constructor.ApplyConfiguration(new SubastaConfiguracion());
         constructor.ApplyConfiguration(new PujaConfiguracion());
+        constructor.ApplyConfiguration(new AuditoriaConfiguracion());
 
         // Datos semilla
         DatosSemilla.Aplicacion(constructor);

@@ -1,15 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
 using SubastaYa.Infraestructura.Repositorios;
+using SubastaYa.Infraestructura.Servicios;
 
 namespace SubastaYa.Infraestructura.Extensiones;
 
 /// <summary>
-/// Extension para registrar los servicios de infraestructura en el contenedor DI.
+/// Extension para registrar todos los servicios de infraestructura en el contenedor DI.
 /// </summary>
 public static class RegistroInfraestructura
 {
@@ -17,18 +20,23 @@ public static class RegistroInfraestructura
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        // EF Core - SQL Server
+        // EF Core — SQL Server
         servicios.AddDbContext<SubastaYaDbContext>(opciones =>
             opciones.UseSqlServer(
                 configuracion.GetConnectionString("SubastaYaDb"),
                 sql => sql.MigrationsAssembly(typeof(SubastaYaDbContext).Assembly.FullName)));
 
-        // Repositorios
+        // Repositorios genérico y de auditoría
         servicios.AddScoped(typeof(IRepositorio<>), typeof(RepositorioGenerico<>));
         servicios.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
+        servicios.AddScoped<IAuditoriaRepositorio, AuditoriaRepositorio>();
+
+        // Servicios de aplicación
+        servicios.AddScoped<IAuditoriaServicio, AuditoriaServicio>();
 
         // Manejadores de casos de uso
         servicios.AddScoped<SubastaFinalizacionManejador>();
+        servicios.AddScoped<PujaRegistroManejador>();
 
         return servicios;
     }
