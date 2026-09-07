@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 using SubastaYa.Dominio.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
 using SubastaYa.Infraestructura.Repositorios;
@@ -25,6 +26,9 @@ public static class RegistroInfraestructura
         // Repositorios
         servicios.AddScoped(typeof(IRepositorio<>), typeof(RepositorioGenerico<>));
         servicios.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
+
+        // Manejadores de casos de uso
+        servicios.AddScoped<SubastaFinalizacionManejador>();
 
         return servicios;
     }

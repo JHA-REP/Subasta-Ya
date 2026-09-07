@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SubastaYa.Dominio.Entidades;
 
@@ -27,6 +27,14 @@ public class SubastaConfiguracion : IEntityTypeConfiguration<Subasta>
             .IsRequired()
             .HasPrecision(18, 2);
 
+        constructor.Property(s => s.PrecioActual)
+            .IsRequired()
+            .HasPrecision(18, 2);
+
+        constructor.Property(s => s.IncrementoMinimo)
+            .IsRequired()
+            .HasPrecision(18, 2);
+
         constructor.Property(s => s.Estado)
             .IsRequired()
             .HasConversion<string>()
@@ -47,5 +55,16 @@ public class SubastaConfiguracion : IEntityTypeConfiguration<Subasta>
             .WithOne(p => p.Subasta)
             .HasForeignKey(p => p.SubastaId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Columnas de adjudicación (opcionales)
+        constructor.Property(s => s.MontoFinal)
+            .HasPrecision(18, 2);
+
+        // Relación: Subasta N — 1 Ganador (Usuario, nullable)
+        constructor.HasOne(s => s.Ganador)
+            .WithMany()
+            .HasForeignKey(s => s.GanadorId)
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
     }
 }

@@ -1,4 +1,4 @@
-﻿using SubastaYa.Dominio.Excepciones;
+using SubastaYa.Dominio.Excepciones;
 
 namespace SubastaYa.Dominio.Entidades;
 
@@ -43,5 +43,20 @@ public class Billetera : EntidadBase
 
         SaldoRetenido -= monto;
         SaldoDisponible += monto;
+    }
+
+    /// <summary>
+    /// Confirmación de retención: débito efectivo del saldo retenido (no retorna a disponible).
+    /// Se utiliza al liquidar una subasta ganada.
+    /// </summary>
+    public void ConfirmacionRetencion(decimal monto)
+    {
+        if (monto <= 0)
+            throw new ExcepcionValidacion("El monto a confirmar debe ser mayor a cero.");
+
+        if (SaldoRetenido < monto)
+            throw new ExcepcionValidacion("No hay saldo retenido suficiente para confirmar el débito.");
+
+        SaldoRetenido -= monto;
     }
 }

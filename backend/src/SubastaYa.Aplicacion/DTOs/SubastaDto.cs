@@ -19,7 +19,11 @@ public class SubastaDto
     public DateTime FechaFin { get; set; }
     public int CantidadPujas { get; set; }
     public decimal? MontoMayorPuja { get; set; }
+    public int? GanadorId { get; set; }
+    public string? GanadorAlias { get; set; }
+    public decimal? MontoFinal { get; set; }
 }
+
 
 public class NuevaSubastaDto
 {

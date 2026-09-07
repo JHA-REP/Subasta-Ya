@@ -6,6 +6,8 @@ using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
 using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Manejadores;
+using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Infraestructura.TiempoReal;
 
 var constructor = WebApplication.CreateBuilder(args);
 
@@ -44,6 +46,12 @@ constructor.Services.AddScoped<CategoriaPorIdManejador>();
 constructor.Services.AddScoped<ListadoUsuariosManejador>();
 constructor.Services.AddScoped<UsuarioPorIdManejador>();
 
+// SignalR — tiempo real
+constructor.Services.AddSignalR();
+constructor.Services.AddScoped<INotificadorSubastas, NotificadorSubastasSignalR>();
+
+// Worker de procesamiento de subastas como BackgroundService
+constructor.Services.AddHostedService<ProcesadorSubastas>();
 
 // CORS — preparación para frontend React
 constructor.Services.AddCors(opciones =>
@@ -56,9 +64,6 @@ constructor.Services.AddCors(opciones =>
             .AllowCredentials(); // Necesario para SignalR
     });
 });
-
-// Preparación para SignalR (se habilitará en etapas posteriores)
-// constructor.Services.AddSignalR();
 
 var app = constructor.Build();
 
@@ -82,7 +87,7 @@ app.UseCors("PermitirFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-// Preparación para SignalR (se habilitará en etapas posteriores)
-// app.MapHub<SubastaHub>("/hubs/subastas");
+// SignalR — Hub de subastas en tiempo real
+app.MapHub<SubastaHub>("/hubs/subastas");
 
 app.Run();

@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Dominio.Entidades;
@@ -151,6 +151,9 @@ public static class DatosSemilla
                 Titulo = "Notebook Gamer MSI",
                 Descripcion = "Notebook gamer MSI con RTX 4060, 16GB RAM, 512GB SSD. Estado impecable.",
                 PrecioInicial = 5000m,
+                PrecioActual = 6000m,
+                IncrementoMinimo = 100m,
+                ImagenUrl = "https://images.unsplash.com/photo-1603302576837-37561b2e2302",
                 CategoriaId = 1,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Activa,
@@ -164,6 +167,9 @@ public static class DatosSemilla
                 Titulo = "Cuadro Óleo Original",
                 Descripcion = "Cuadro al óleo original de artista emergente. Técnica mixta sobre lienzo 80x60.",
                 PrecioInicial = 8000m,
+                PrecioActual = 8500m,
+                IncrementoMinimo = 200m,
+                ImagenUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675",
                 CategoriaId = 4,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Activa,
@@ -177,6 +183,9 @@ public static class DatosSemilla
                 Titulo = "Bicicleta Montaña R29",
                 Descripcion = "Bicicleta de montaña rodado 29, cuadro de aluminio, 21 velocidades.",
                 PrecioInicial = 3000m,
+                PrecioActual = 3000m,
+                IncrementoMinimo = 50m,
+                ImagenUrl = "https://images.unsplash.com/photo-1485965120184-e220f721d03e",
                 CategoriaId = 3,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Pendiente,
@@ -190,9 +199,14 @@ public static class DatosSemilla
                 Titulo = "Smart TV 55 Pulgadas",
                 Descripcion = "Smart TV LED 55 pulgadas 4K UHD con sistema operativo integrado.",
                 PrecioInicial = 4000m,
+                PrecioActual = 4500m,
+                IncrementoMinimo = 100m,
+                ImagenUrl = "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1",
                 CategoriaId = 1,
                 VendedorId = 2,
                 Estado = EstadoSubasta.Finalizada,
+                GanadorId = 5,
+                MontoFinal = 4500m,
                 FechaInicio = FechaReferencia.AddDays(-10),
                 FechaFin = FechaReferencia.AddDays(-3)
             },
@@ -203,9 +217,12 @@ public static class DatosSemilla
                 Titulo = "Set de Sartenes Profesional",
                 Descripcion = "Set de 5 sartenes profesionales con revestimiento cerámico antiadherente.",
                 PrecioInicial = 1500m,
+                PrecioActual = 1500m,
+                IncrementoMinimo = 50m,
+                ImagenUrl = "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7",
                 CategoriaId = 2,
                 VendedorId = 2,
-                Estado = EstadoSubasta.Finalizada,
+                Estado = EstadoSubasta.Desierta,
                 FechaInicio = FechaReferencia.AddDays(-10),
                 FechaFin = FechaReferencia.AddDays(-2)
             }

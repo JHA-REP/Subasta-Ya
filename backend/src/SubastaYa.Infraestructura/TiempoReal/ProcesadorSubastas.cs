@@ -1,7 +1,10 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 
-namespace SubastaYa.Worker;
+namespace SubastaYa.Infraestructura.TiempoReal;
 
 /// <summary>
 /// Worker de procesamiento de subastas.

@@ -1,4 +1,4 @@
-﻿using SubastaYa.Aplicacion.DTOs;
+using SubastaYa.Aplicacion.DTOs;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 
@@ -19,7 +19,10 @@ public static class SubastaMapeos
             FechaInicio = entidad.FechaInicio,
             FechaFin = entidad.FechaFin,
             VendedorId = entidad.VendedorId,
-            Estado = entidad.Activa ? EstadoSubasta.Activa : EstadoSubasta.Finalizada
+            Estado = entidad.Estado,
+            GanadorId = entidad.GanadorId,
+            GanadorAlias = entidad.Ganador?.Alias,
+            MontoFinal = entidad.MontoFinal
         };
     }
 }

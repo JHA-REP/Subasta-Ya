@@ -1,5 +1,6 @@
-﻿using SubastaYa.Aplicacion.CasosDeUso.Pujas.Comandos;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Comandos;
 using SubastaYa.Aplicacion.DTOs;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Aplicacion.Mapeos;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
@@ -15,17 +16,20 @@ public class PujaRegistroManejador
     private readonly IRepositorio<Puja> _repositorioPujas;
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
+    private readonly INotificadorSubastas _notificador;
 
     public PujaRegistroManejador(
         IRepositorio<Subasta> repositorioSubastas,
         IRepositorio<Puja> repositorioPujas,
         IRepositorio<Billetera> repositorioBilleteras,
-        IUnidadDeTrabajo unidadDeTrabajo)
+        IUnidadDeTrabajo unidadDeTrabajo,
+        INotificadorSubastas notificador)
     {
         _repositorioSubastas = repositorioSubastas;
         _repositorioPujas = repositorioPujas;
         _repositorioBilleteras = repositorioBilleteras;
         _unidadDeTrabajo = unidadDeTrabajo;
+        _notificador = notificador;
     }
 
     public async Task<PujaDto> EjecucionAsync(PujaRegistroComando comando)
@@ -104,6 +108,9 @@ public class PujaRegistroManejador
         await _unidadDeTrabajo.ConfirmacionAsync();
         await _unidadDeTrabajo.ConfirmacionTransaccionAsync();
 
-        return puja.MapeoDto();
+        var dto = puja.MapeoDto();
+        await _notificador.EventoPujaRecibida(dto);
+
+        return dto;
     }
 }
