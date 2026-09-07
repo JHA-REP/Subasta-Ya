@@ -60,7 +60,7 @@ constructor.Services.AddCors(opciones =>
 {
     opciones.AddPolicy("PermitirFrontend", politica =>
     {
-        politica.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        politica.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:8080", "http://localhost:8081")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); // Necesario para SignalR WebSocket

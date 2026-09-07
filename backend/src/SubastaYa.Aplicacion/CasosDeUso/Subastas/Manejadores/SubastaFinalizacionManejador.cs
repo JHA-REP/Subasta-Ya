@@ -128,30 +128,10 @@ public class SubastaFinalizacionManejador
             _repositorioBilleteras.Modificacion(billeteraVendedor);
             contadorMovimientos++;
 
-            // 4. Liberar retenciones de todos los perdedores
-            var perdedores = pujasOrdenadas.Skip(1)
-                .GroupBy(p => p.PostorId)
-                .Select(g => g.First())
-                .ToList();
-
-            foreach (var pujaPerdedor in perdedores)
-            {
-                var billeterasPerdedor = await _repositorioBilleteras
-                    .FiltradasAsync(b => b.UsuarioId == pujaPerdedor.PostorId);
-                var billeteraPerdedor = billeterasPerdedor.FirstOrDefault();
-                if (billeteraPerdedor is null) continue;
-
-                billeteraPerdedor.LiberacionSaldo(pujaPerdedor.Monto);
-                billeteraPerdedor.Movimientos.Add(new MovimientoContable
-                {
-                    Tipo = TipoMovimiento.Liberacion,
-                    Monto = pujaPerdedor.Monto,
-                    Concepto = $"Liberación por subasta no ganada #{subasta.Id} — {subasta.Titulo}",
-                    FechaMovimiento = fechaCorte
-                });
-                _repositorioBilleteras.Modificacion(billeteraPerdedor);
-                contadorMovimientos++;
-            }
+            // 4. Retenciones de perdedores:
+            // Nota de diseño: En PujaRegistroManejador, la liberación de saldo al postor superado
+            // ya se ejecuta de forma inmediata al registrarse cada nueva puja mayor.
+            // Por lo tanto, al finalizar la subasta únicamente el ganador mantiene saldo retenido por esta subasta.
 
             // Persistencia transaccional (Optimistic Locking via RowVersion protege contra doble ejecución)
             await _unidadDeTrabajo.ConfirmacionAsync();

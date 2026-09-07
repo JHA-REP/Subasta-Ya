@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
 
@@ -30,4 +30,7 @@ public class NuevaSubastaComando
 
     [Required]
     public int VendedorId { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Debe especificar una categoría válida.")]
+    public int CategoriaId { get; set; } = 1;
 }

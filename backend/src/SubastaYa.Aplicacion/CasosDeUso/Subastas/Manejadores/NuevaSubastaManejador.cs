@@ -1,4 +1,4 @@
-﻿using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
 using SubastaYa.Aplicacion.DTOs;
 using SubastaYa.Aplicacion.Mapeos;
 using SubastaYa.Dominio.Entidades;
@@ -32,6 +32,7 @@ public class NuevaSubastaManejador
             FechaInicio = comando.FechaInicio,
             FechaFin = comando.FechaFin,
             VendedorId = comando.VendedorId,
+            CategoriaId = comando.CategoriaId > 0 ? comando.CategoriaId : 1,
             Estado = SubastaYa.Dominio.Enumeraciones.EstadoSubasta.Activa
         };
 

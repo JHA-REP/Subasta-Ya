@@ -1,0 +1,234 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * SubastaYa — sistema de diseño.
+ * Paleta "sala de remates nocturna": tinta profunda + ámbar de martillo.
+ * Todos los colores en oklch. Nunca usar colores literales en componentes.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-surface: var(--surface);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --animate-pulse-critical: pulse-critical 1s ease-in-out infinite;
+  --animate-bid-in: bid-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shake: shake 0.5s ease-in-out;
+}
+
+:root {
+  --radius: 0.85rem;
+  --background: oklch(0.975 0.012 92);
+  --foreground: oklch(0.27 0.03 265);
+  --surface: oklch(0.99 0.005 95);
+  --card: oklch(0.995 0.004 95);
+  --card-foreground: oklch(0.27 0.03 265);
+  --popover: oklch(0.995 0.004 95);
+  --popover-foreground: oklch(0.27 0.03 265);
+  --primary: oklch(0.6 0.14 58);
+  --primary-foreground: oklch(0.985 0.01 90);
+  --primary-glow: oklch(0.72 0.14 78);
+  --secondary: oklch(0.93 0.018 92);
+  --secondary-foreground: oklch(0.3 0.03 265);
+  --muted: oklch(0.945 0.015 92);
+  --muted-foreground: oklch(0.52 0.025 262);
+  --accent: oklch(0.58 0.13 200);
+  --accent-foreground: oklch(0.985 0.01 90);
+  --destructive: oklch(0.56 0.2 24);
+  --destructive-foreground: oklch(0.985 0.01 90);
+  --success: oklch(0.55 0.14 155);
+  --success-foreground: oklch(0.985 0.01 90);
+  --warning: oklch(0.72 0.14 82);
+  --warning-foreground: oklch(0.32 0.05 70);
+  --border: oklch(0.895 0.018 90);
+  --input: oklch(0.9 0.018 90);
+  --ring: oklch(0.6 0.14 58);
+  --chart-1: oklch(0.6 0.14 58);
+  --chart-2: oklch(0.58 0.13 200);
+  --chart-3: oklch(0.55 0.14 155);
+  --chart-4: oklch(0.56 0.2 24);
+  --chart-5: oklch(0.72 0.14 82);
+  --sidebar: oklch(0.965 0.014 92);
+  --sidebar-foreground: oklch(0.27 0.03 265);
+  --sidebar-primary: oklch(0.6 0.14 58);
+  --sidebar-primary-foreground: oklch(0.985 0.01 90);
+  --sidebar-accent: oklch(0.93 0.018 92);
+  --sidebar-accent-foreground: oklch(0.3 0.03 265);
+  --sidebar-border: oklch(0.895 0.018 90);
+  --sidebar-ring: oklch(0.6 0.14 58);
+
+  --gradient-hero: radial-gradient(
+      1100px 520px at 12% -10%,
+      color-mix(in oklab, var(--primary) 18%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 480px at 92% 0%,
+      color-mix(in oklab, var(--accent) 14%, transparent),
+      transparent 60%
+    );
+  --gradient-ember: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  --shadow-elegant: 0 18px 44px -24px oklch(0.35 0.05 70 / 0.35);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 45%, transparent),
+    0 12px 36px -12px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+
+@keyframes pulse-critical {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes bid-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@utility surface-card {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-elegant);
+  backdrop-filter: blur(8px);
+}
+
+@utility text-ember {
+  background: var(--gradient-ember);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility hero-glow {
+  background-image: var(--gradient-hero);
+}
+
+@utility glow-ring {
+  box-shadow: var(--shadow-glow);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Marca de agua: martillo de subasta */
+  body::before {
+    content: "";
+    position: fixed;
+    right: -5rem;
+    bottom: -5rem;
+    width: min(60vw, 640px);
+    aspect-ratio: 1;
+    background: url("./assets/gavel-watermark.png") no-repeat center / contain;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}

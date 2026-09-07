@@ -18,8 +18,8 @@ namespace SubastaYa.Infraestructura.Datos;
 /// </summary>
 public static class DatosSemilla
 {
-    // Fecha de referencia fija para datos semilla reproducibles
-    private static readonly DateTime FechaReferencia = new(2026, 8, 30, 12, 0, 0, DateTimeKind.Utc);
+    // Fecha de referencia para datos semilla reproducibles y sincronizados con el estado de desarrollo actual
+    private static readonly DateTime FechaReferencia = new(2026, 9, 7, 12, 0, 0, DateTimeKind.Utc);
 
     public static void Aplicacion(ModelBuilder constructor)
     {
@@ -111,7 +111,7 @@ public static class DatosSemilla
                 Id = 3,
                 UsuarioId = 3,
                 SaldoDisponible = 10000m,
-                SaldoRetenido = 3500m
+                SaldoRetenido = 8500m
             },
             // pedro_postor: usuario sin fondos ✓
             new Billetera
@@ -125,8 +125,8 @@ public static class DatosSemilla
             {
                 Id = 5,
                 UsuarioId = 5,
-                SaldoDisponible = 50000m,
-                SaldoRetenido = 1500m
+                SaldoDisponible = 44000m,
+                SaldoRetenido = 6000m
             }
         );
     }
@@ -174,7 +174,7 @@ public static class DatosSemilla
                 VendedorId = 2,
                 Estado = EstadoSubasta.Activa,
                 FechaInicio = FechaReferencia.AddDays(-3),
-                FechaFin = FechaReferencia.AddMinutes(30)
+                FechaFin = FechaReferencia.AddHours(8)
             },
             // Subasta próxima ✓
             new Subasta
@@ -303,15 +303,15 @@ public static class DatosSemilla
                 Concepto = "Carga inicial de saldo",
                 FechaMovimiento = FechaReferencia.AddDays(-15)
             },
-            // Retención por puja de ana_vip en subasta 2
+            // Retención por puja de ana_vip en subasta 1
             new MovimientoContable
             {
                 Id = 4,
                 BilleteraId = 5,
                 Tipo = TipoMovimiento.Retencion,
-                Monto = -1500m,
-                Concepto = "Retención por puja en subasta Cuadro Óleo",
-                FechaMovimiento = FechaReferencia.AddHours(-2)
+                Monto = -6000m,
+                Concepto = "Retención por puja en subasta Notebook Gamer MSI",
+                FechaMovimiento = FechaReferencia.AddHours(-12)
             },
             // Carga inicial pedro_postor (sin fondos)
             new MovimientoContable
