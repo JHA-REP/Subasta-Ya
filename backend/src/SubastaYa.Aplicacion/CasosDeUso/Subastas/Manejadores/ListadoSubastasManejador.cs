@@ -15,9 +15,41 @@ public class ListadoSubastasManejador
         _repositorioSubastas = repositorioSubastas;
     }
 
-    public async Task<IEnumerable<SubastaDto>> EjecucionAsync(ListadoSubastasConsulta consulta)
+    public async Task<ResultadoPaginadoDto<SubastaDto>> EjecucionAsync(ListadoSubastasConsulta consulta)
     {
-        var subastas = await _repositorioSubastas.TodosAsync();
-        return subastas.Select(s => s.MapeoDto());
+        var todasLasSubastas = await _repositorioSubastas.TodosAsync();
+
+        // aplicar filtros
+        var subastasFiltradas = todasLasSubastas.AsQueryable();
+
+        if (consulta.Estado.HasValue)
+            subastasFiltradas = subastasFiltradas.Where(s => s.Estado == consulta.Estado.Value);
+
+        if (consulta.CategoriaId.HasValue)
+            subastasFiltradas = subastasFiltradas.Where(s => s.CategoriaId == consulta.CategoriaId.Value);
+
+        if (consulta.PrecioMin.HasValue)
+            subastasFiltradas = subastasFiltradas.Where(s => s.PrecioActual >= consulta.PrecioMin.Value);
+
+        if (consulta.PrecioMax.HasValue)
+            subastasFiltradas = subastasFiltradas.Where(s => s.PrecioActual <= consulta.PrecioMax.Value);
+
+        // contar total antes de paginar
+        var totalItems = subastasFiltradas.Count();
+
+        // paginar
+        var items = subastasFiltradas
+            .Skip((consulta.Pagina - 1) * consulta.TamanoPagina)
+            .Take(consulta.TamanoPagina)
+            .Select(s => s.MapeoDto());
+
+        return new ResultadoPaginadoDto<SubastaDto>
+        {
+            Items = items,
+            TotalItems = totalItems,
+            Pagina = consulta.Pagina,
+            TamanoPagina = consulta.TamanoPagina,
+            TotalPaginas = (int)Math.Ceiling((double)totalItems / consulta.TamanoPagina)
+        };
     }
 }
