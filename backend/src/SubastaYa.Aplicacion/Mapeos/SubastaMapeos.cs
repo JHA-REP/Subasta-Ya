@@ -23,6 +23,8 @@ public static class SubastaMapeos
             FechaFin = entidad.FechaFin,
             VendedorId = entidad.VendedorId,
             Estado = entidad.Estado,
+            CantidadPujas = entidad.Pujas?.Count ?? 0,
+            MontoMayorPuja = entidad.PrecioActual != entidad.PrecioInicial ? entidad.PrecioActual : null,
             GanadorId = entidad.GanadorId,
             GanadorAlias = entidad.Ganador?.Alias,
             MontoFinal = entidad.MontoFinal
