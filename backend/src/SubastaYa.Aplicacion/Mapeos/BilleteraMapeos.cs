@@ -11,6 +11,7 @@ public static class BilleteraMapeos
         {
             Id = entidad.Id,
             UsuarioId = entidad.UsuarioId,
+            UsuarioAlias = entidad.Usuario?.Alias ?? string.Empty,
             Saldo = entidad.SaldoDisponible + entidad.SaldoRetenido,
             SaldoRetenido = entidad.SaldoRetenido
         };
