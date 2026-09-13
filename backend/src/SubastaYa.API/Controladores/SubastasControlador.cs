@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Consultas;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Dominio.Entidades;
+using SubastaYa.Dominio.Enumeraciones;
+
 
 namespace SubastaYa.Api.Controladores;
 
@@ -12,9 +15,26 @@ public class SubastasControlador : ControllerBase
 {
     // listado de subastas
     [HttpGet]
-    public async Task<IActionResult> Listado([FromServices] ListadoSubastasManejador manejador)
+     public async Task<IActionResult> Listado(
+     [FromServices] ListadoSubastasManejador manejador,
+     [FromQuery] EstadoSubasta? estado = null,
+     [FromQuery] int? categoriaId = null,
+     [FromQuery] decimal? precioMin = null,
+     [FromQuery] decimal? precioMax = null,
+     [FromQuery] int pagina = 1,
+     [FromQuery] int tamanoPagina = 10)
     {
-        var resultado = await manejador.EjecucionAsync(new ListadoSubastasConsulta());
+        var consulta = new ListadoSubastasConsulta
+     {
+            Estado = estado,
+            CategoriaId = categoriaId,
+            PrecioMin = precioMin,  
+            PrecioMax = precioMax,
+            Pagina = pagina,
+            TamanoPagina = tamanoPagina
+     }
+        ;
+        var resultado = await manejador.EjecucionAsync(consulta);
         return Ok(resultado);
     }
 
