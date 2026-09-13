@@ -9,15 +9,25 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 public class BilleteraPorUsuarioManejador
 {
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
+    private readonly IRepositorio<Usuario> _repositorioUsuarios;
 
-    public BilleteraPorUsuarioManejador(IRepositorio<Billetera> repositorioBilleteras)
+    public BilleteraPorUsuarioManejador(
+        IRepositorio<Billetera> repositorioBilleteras,
+        IRepositorio<Usuario> repositorioUsuarios)
     {
         _repositorioBilleteras = repositorioBilleteras;
+        _repositorioUsuarios = repositorioUsuarios;
     }
 
     public async Task<BilleteraDto?> EjecucionAsync(BilleteraPorUsuarioConsulta consulta)
     {
         var billeteras = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == consulta.UsuarioId);
-        return billeteras.FirstOrDefault()?.MapeoDto();
+        var billetera = billeteras.FirstOrDefault();
+        if (billetera == null) return null;
+
+        // carga manual de relacion 
+        billetera.Usuario = await _repositorioUsuarios.PorIdAsync(billetera.UsuarioId);
+
+        return billetera.MapeoDto();
     }
 }
