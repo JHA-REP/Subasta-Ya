@@ -11,13 +11,16 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
 public class AcreditacionSaldoManejador
 {
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
+    private readonly IRepositorio<Usuario> _repositorioUsuarios;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public AcreditacionSaldoManejador(
         IRepositorio<Billetera> repositorioBilleteras,
+        IRepositorio<Usuario> repositorioUsuarios,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioBilleteras = repositorioBilleteras;
+        _repositorioUsuarios = repositorioUsuarios;
         _unidadDeTrabajo = unidadDeTrabajo;
     }
 
@@ -40,6 +43,10 @@ public class AcreditacionSaldoManejador
 
         _repositorioBilleteras.Modificacion(billetera);
         await _unidadDeTrabajo.ConfirmacionAsync();
+
+        // carga manual de la relacion usuario para que el DTO tenga el alias
+        billetera.Usuario = await _repositorioUsuarios.PorIdAsync(billetera.UsuarioId);
+
 
         return billetera.MapeoDto();
     }
