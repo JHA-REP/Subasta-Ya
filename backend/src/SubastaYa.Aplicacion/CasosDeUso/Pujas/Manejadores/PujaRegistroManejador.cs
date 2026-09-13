@@ -187,21 +187,25 @@ public class PujaRegistroManejador
         }
         catch (ExcepcionConcurrencia exConcurrencia)
         {
-            // Auditoría de puja rechazada por concurrencia
-            await _auditoria.RegistroAsync(
-                TipoAccionAuditoria.PujaRechazadaConcurrencia,
-                nameof(Puja),
-                0,
-                new
-                {
-                    subastaId = comando.SubastaId,
-                    postorId = comando.PostorId,
-                    monto = comando.Monto,
-                    mensajeError = exConcurrencia.Message
-                },
-                "Sistema");
-
+            // Revertir PRIMERO antes de cualquier otra operacion con el DbContext
             await _unidadDeTrabajo.ReversionTransaccionAsync();
+            // auditoria post-rollback (en contexto limpio, dentro de su propio try-catch)
+            try
+            {
+                await _auditoria.RegistroAsync(
+                    TipoAccionAuditoria.PujaRechazadaConcurrencia,
+                    nameof(Puja),
+                    0,
+                    new
+                    {
+                        subastaId = comando.SubastaId,
+                        postorId = comando.PostorId,
+                        monto = comando.Monto,
+                        mensajeError = exConcurrencia.Message
+                    },
+                    "Sistema");
+            }
+            catch { /* si falla la auditoría no debe tapar el 409 */ }
             throw;
         }
         catch
