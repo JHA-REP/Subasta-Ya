@@ -47,6 +47,7 @@ public class PujaRegistroManejador
         _auditoria = auditoria;
     }
 
+
     public async Task<PujaDto> EjecucionAsync(PujaRegistroComando comando)
     {
         var fechaHoraActual = DateTime.UtcNow;
@@ -57,7 +58,7 @@ public class PujaRegistroManejador
         {
             var subasta = await _repositorioSubastas.PorIdAsync(comando.SubastaId);
             if (subasta == null)
-                throw new ExcepcionValidacion("La subasta especificada no existe.");
+                throw new ExcepcionNoEncontrado(nameof(Subasta), comando.SubastaId);
 
             var billeteras = await _repositorioBilleteras.FiltradasAsync(b => b.UsuarioId == comando.PostorId);
             var billetera = billeteras.FirstOrDefault();
