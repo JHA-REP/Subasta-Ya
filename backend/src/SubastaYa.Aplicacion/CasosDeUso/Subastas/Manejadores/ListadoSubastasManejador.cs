@@ -11,15 +11,17 @@ public class ListadoSubastasManejador
     private readonly IRepositorio<Subasta> _repositorioSubastas;
     private readonly IRepositorio<Categoria> _repositorioCategorias;
     private readonly IRepositorio<Usuario> _repositorioUsuarios;
-
+    private readonly IRepositorio<Puja> _repositorioPujas;
     public ListadoSubastasManejador(
         IRepositorio<Subasta> repositorioSubastas,
         IRepositorio<Categoria> repositorioCategorias,
-        IRepositorio<Usuario> repositorioUsuarios)
+        IRepositorio<Usuario> repositorioUsuarios,
+        IRepositorio<Puja> repositorioPujas)
     {
         _repositorioSubastas = repositorioSubastas;
         _repositorioCategorias = repositorioCategorias;
         _repositorioUsuarios = repositorioUsuarios;
+        _repositorioPujas = repositorioPujas;
     }
 
     public async Task<ResultadoPaginadoDto<SubastaDto>> EjecucionAsync(ListadoSubastasConsulta consulta)
@@ -53,11 +55,14 @@ public class ListadoSubastasManejador
         // carga manual de relaciones - una sola query por tipo, no N queries
         var categorias = await _repositorioCategorias.TodosAsync();
         var usuarios = await _repositorioUsuarios.TodosAsync();
+        var subastasIds = listaFiltrada.Select(s => s.Id).ToList();
+        var pujas = await _repositorioPujas.FiltradasAsync(p => subastasIds.Contains(p.SubastaId));
 
         foreach (var s in listaFiltrada)
         {
             s.Categoria = categorias.FirstOrDefault(c => c.Id == s.CategoriaId);
             s.Vendedor = usuarios.FirstOrDefault(u => u.Id == s.VendedorId);
+            s.Pujas = pujas.Where(p => p.SubastaId == s.Id).ToList();
         }
 
         return new ResultadoPaginadoDto<SubastaDto>
