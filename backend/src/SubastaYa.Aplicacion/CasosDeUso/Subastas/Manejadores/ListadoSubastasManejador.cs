@@ -9,10 +9,17 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
 public class ListadoSubastasManejador
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;
+    private readonly IRepositorio<Categoria> _repositorioCategorias;
+    private readonly IRepositorio<Usuario> _repositorioUsuarios;
 
-    public ListadoSubastasManejador(IRepositorio<Subasta> repositorioSubastas)
+    public ListadoSubastasManejador(
+        IRepositorio<Subasta> repositorioSubastas,
+        IRepositorio<Categoria> repositorioCategorias,
+        IRepositorio<Usuario> repositorioUsuarios)
     {
         _repositorioSubastas = repositorioSubastas;
+        _repositorioCategorias = repositorioCategorias;
+        _repositorioUsuarios = repositorioUsuarios;
     }
 
     public async Task<ResultadoPaginadoDto<SubastaDto>> EjecucionAsync(ListadoSubastasConsulta consulta)
@@ -37,15 +44,25 @@ public class ListadoSubastasManejador
         // contar total antes de paginar
         var totalItems = subastasFiltradas.Count();
 
-        // paginar
-        var items = subastasFiltradas
+        // paginar y materializar la lista
+        var listaFiltrada = subastasFiltradas
             .Skip((consulta.Pagina - 1) * consulta.TamanoPagina)
             .Take(consulta.TamanoPagina)
-            .Select(s => s.MapeoDto());
+            .ToList();
+
+        // carga manual de relaciones - una sola query por tipo, no N queries
+        var categorias = await _repositorioCategorias.TodosAsync();
+        var usuarios = await _repositorioUsuarios.TodosAsync();
+
+        foreach (var s in listaFiltrada)
+        {
+            s.Categoria = categorias.FirstOrDefault(c => c.Id == s.CategoriaId);
+            s.Vendedor = usuarios.FirstOrDefault(u => u.Id == s.VendedorId);
+        }
 
         return new ResultadoPaginadoDto<SubastaDto>
         {
-            Items = items,
+            Items = listaFiltrada.Select(s => s.MapeoDto()),
             TotalItems = totalItems,
             Pagina = consulta.Pagina,
             TamanoPagina = consulta.TamanoPagina,
