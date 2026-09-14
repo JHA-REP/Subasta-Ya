@@ -1,4 +1,4 @@
-﻿using SubastaYa.Aplicacion.CasosDeUso.Subastas.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.Consultas;
 using SubastaYa.Aplicacion.DTOs;
 using SubastaYa.Aplicacion.Mapeos;
 using SubastaYa.Dominio.Entidades;
@@ -42,6 +42,24 @@ public class ListadoSubastasManejador
 
         if (consulta.PrecioMax.HasValue)
             subastasFiltradas = subastasFiltradas.Where(s => s.PrecioActual <= consulta.PrecioMax.Value);
+
+        if (!string.IsNullOrWhiteSpace(consulta.TerminoBusqueda))
+        {
+            var termino = consulta.TerminoBusqueda.ToLower();
+            subastasFiltradas = subastasFiltradas.Where(s => 
+                s.Titulo.ToLower().Contains(termino) || 
+                s.Descripcion.ToLower().Contains(termino));
+        }
+
+        // aplicar ordenamiento
+        subastasFiltradas = consulta.CriterioOrden switch
+        {
+            "puja-desc" => subastasFiltradas.OrderByDescending(s => s.PrecioActual).ThenBy(s => s.FechaFin),
+            "puja-asc" => subastasFiltradas.OrderBy(s => s.PrecioActual).ThenBy(s => s.FechaFin),
+            "ofertas" => subastasFiltradas.OrderByDescending(s => s.Pujas.Count()).ThenBy(s => s.FechaFin),
+            "destacadas" => subastasFiltradas.OrderByDescending(s => s.Pujas.Count()).ThenBy(s => s.FechaFin),
+            _ => subastasFiltradas.OrderBy(s => s.FechaFin) // "tiempo" por defecto
+        };
 
         // contar total antes de paginar
         var totalItems = subastasFiltradas.Count();
