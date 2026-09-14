@@ -53,6 +53,7 @@ function Catalogo() {
   const now = useNow();
 
   const [listaSubastas, setListaSubastas] = useState<Subasta[]>([]);
+  const [listaCarrusel, setListaCarrusel] = useState<Subasta[]>([]);
   const [listaCategorias, setListaCategorias] = useState<Categoria[]>([]);
   const [cargando, setCargando] = useState(true);
 
@@ -60,18 +61,43 @@ function Catalogo() {
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("todas");
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [precioMaximoFiltro, setPrecioMaximoFiltro] = useState<number | null>(null);
-  const [criterioOrden, setCriterioOrden] = useState<
-    "tiempo" | "puja-desc" | "puja-asc" | "ofertas"
-  >("tiempo");
+  const [criterioOrden, setCriterioOrden] = useState<"tiempo" | "puja-desc" | "puja-asc" | "ofertas">("tiempo");
 
-  const consultaDatosIniciales = async () => {
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const tamanoPagina = 8;
+
+  const topePrecio = 100000;
+  const maximoEfectivo = precioMaximoFiltro ?? topePrecio;
+
+  const cargarIniciales = async () => {
     try {
-      const [subastas, categorias] = await Promise.all([
-        servicioSubastas.listado(),
+      const [categorias, carrusel] = await Promise.all([
         servicioCategorias.listado(),
+        servicioSubastas.listado({ estado: "Activa", criterioOrden: "destacadas", tamanoPagina: 5 }),
       ]);
-      setListaSubastas(subastas);
       setListaCategorias(categorias);
+      setListaCarrusel(carrusel.items);
+    } catch {
+      /* Silencioso */
+    }
+  };
+
+  const cargarCatalogo = async () => {
+    setCargando(true);
+    try {
+      const catId = categoriaFiltro === "todas" ? undefined : listaCategorias.find(c => c.nombre === categoriaFiltro)?.id;
+      const resp = await servicioSubastas.listado({
+        estado: estadoFiltro,
+        categoriaId: catId,
+        precioMax: precioMaximoFiltro ?? undefined,
+        terminoBusqueda,
+        criterioOrden,
+        pagina: paginaActual,
+        tamanoPagina,
+      });
+      setListaSubastas(resp.items);
+      setTotalPaginas(resp.totalPaginas);
     } catch {
       /* Silencioso */
     } finally {
@@ -80,91 +106,50 @@ function Catalogo() {
   };
 
   useEffect(() => {
-    consultaDatosIniciales();
+    cargarIniciales();
+  }, []);
 
-    // Actualizacion en tiempo real al recibir eventos SignalR
-    const cancelacionPuja = servicioTiempoReal.registroPuja(() => {
-      servicioSubastas.listado().then(setListaSubastas).catch(() => {});
-    });
+  useEffect(() => {
+    // Cuando cambian los filtros, volvemos a la pagina 1 (excepto si el cambio fue de pagina)
+    // Para simplificar, si cambian filtros que no sean pagina, lo ideal es resetear. 
+    // Aqui lo dejamos simple: cada vez que cambia algo, consulta.
+    cargarCatalogo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estadoFiltro, categoriaFiltro, terminoBusqueda, precioMaximoFiltro, criterioOrden, paginaActual, listaCategorias.length]);
 
-    const cancelacionFinalizada = servicioTiempoReal.registroFinalizada(() => {
-      servicioSubastas.listado().then(setListaSubastas).catch(() => {});
-    });
+  useEffect(() => {
+    // Reiniciar pagina al cambiar filtros
+    setPaginaActual(1);
+  }, [estadoFiltro, categoriaFiltro, terminoBusqueda, precioMaximoFiltro, criterioOrden]);
 
-    const cancelacionDesierta = servicioTiempoReal.registroDesierta(() => {
-      servicioSubastas.listado().then(setListaSubastas).catch(() => {});
-    });
+  useEffect(() => {
+    const refresh = () => {
+      cargarCatalogo();
+      servicioSubastas.listado({ estado: "Activa", criterioOrden: "destacadas", tamanoPagina: 5 })
+        .then(r => setListaCarrusel(r.items)).catch(() => {});
+    };
+
+    const cancelacionPuja = servicioTiempoReal.registroPuja(refresh);
+    const cancelacionFinalizada = servicioTiempoReal.registroFinalizada(refresh);
+    const cancelacionDesierta = servicioTiempoReal.registroDesierta(refresh);
 
     return () => {
       cancelacionPuja();
       cancelacionFinalizada();
       cancelacionDesierta();
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estadoFiltro, categoriaFiltro, terminoBusqueda, precioMaximoFiltro, criterioOrden, paginaActual, listaCategorias.length]);
 
-  const topePrecio = useMemo(() => {
-    if (listaSubastas.length === 0) return 100000;
-    const maximo = Math.max(
-      ...listaSubastas.map((s) => s.montoMayorPuja ?? s.precioBase),
-    );
-    return Math.max(10000, maximo * 1.05);
-  }, [listaSubastas]);
-
-  const maximoEfectivo = precioMaximoFiltro ?? topePrecio;
-
-  const subastasFiltradas = useMemo(() => {
-    const filtradas = listaSubastas.filter((s) => {
-      if (estadoFiltro !== "todas") {
-        if (estadoFiltro === "Finalizada") {
-          if (s.estado !== "Finalizada" && s.estado !== "Desierta") return false;
-        } else if (s.estado !== (estadoFiltro as EstadoSubasta)) {
-          return false;
-        }
-      }
-      if (categoriaFiltro !== "todas" && s.categoria !== categoriaFiltro) return false;
-      if (
-        terminoBusqueda &&
-        !`${s.titulo} ${s.descripcion}`.toLowerCase().includes(terminoBusqueda.toLowerCase())
-      ) {
-        return false;
-      }
-      const precio = s.montoMayorPuja ?? s.precioBase;
-      if (precio > maximoEfectivo) return false;
-      return true;
-    });
-
-    return filtradas.sort((a, b) => {
-      const precioA = a.montoMayorPuja ?? a.precioBase;
-      const precioB = b.montoMayorPuja ?? b.precioBase;
-
-      switch (criterioOrden) {
-        case "puja-desc":
-          return precioB - precioA;
-        case "puja-asc":
-          return precioA - precioB;
-        case "ofertas":
-          return b.cantidadPujas - a.cantidadPujas;
-        default:
-          return new Date(a.fechaFin).getTime() - new Date(b.fechaFin).getTime();
-      }
-    });
-  }, [
-    listaSubastas,
-    estadoFiltro,
-    categoriaFiltro,
-    terminoBusqueda,
-    maximoEfectivo,
-    criterioOrden,
-  ]);
-
-  const cantidadActivas = listaSubastas.filter((s) => s.estado === "Activa").length;
+  const subastasFiltradas = listaSubastas;
+  const cantidadActivas = estadoFiltro === "Activa" ? subastasFiltradas.length : 0; // Aproximado visual
 
   return (
     <main>
       <section className="hero-glow border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-14 md:py-20">
           <p className="animate-rise inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            <Flame className="size-3.5" aria-hidden /> {cantidadActivas} subastas en curso ahora mismo
+            <Flame className="size-3.5" aria-hidden /> Descubre las mejores subastas en tiempo real
           </p>
           <h1 className="animate-rise mt-5 max-w-3xl text-4xl font-bold leading-[1.05] md:text-6xl">
             El martillo cae <span className="text-ember">en vivo</span>. Pujá antes de que se apague
@@ -177,7 +162,7 @@ function Catalogo() {
         </div>
       </section>
 
-      <HotCarousel subastas={listaSubastas} now={now} />
+      <HotCarousel subastas={listaCarrusel} now={now} />
 
       <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="surface-card rounded-xl p-4">
@@ -262,11 +247,34 @@ function Catalogo() {
             <p className="text-sm text-muted-foreground">Probá ampliar el rango o cambiar el estado.</p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {subastasFiltradas.map((s) => (
-              <AuctionCard key={s.id} subasta={s} now={now} />
-            ))}
-          </div>
+          <>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {subastasFiltradas.map((s) => (
+                <AuctionCard key={s.id} subasta={s} now={now} />
+              ))}
+            </div>
+            {totalPaginas > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  disabled={paginaActual === 1}
+                  onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {paginaActual} de {totalPaginas}
+                </span>
+                <Button 
+                  variant="outline" 
+                  disabled={paginaActual === totalPaginas}
+                  onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </main>
