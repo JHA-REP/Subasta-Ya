@@ -22,7 +22,9 @@ public class SubastasControlador : ControllerBase
      [FromQuery] decimal? precioMin = null,
      [FromQuery] decimal? precioMax = null,
      [FromQuery] int pagina = 1,
-     [FromQuery] int tamanoPagina = 10)
+     [FromQuery] int tamanoPagina = 10,
+     [FromQuery] string? terminoBusqueda = null,
+     [FromQuery] string? criterioOrden = null)
     {
         var consulta = new ListadoSubastasConsulta
      {
@@ -31,7 +33,9 @@ public class SubastasControlador : ControllerBase
             PrecioMin = precioMin,  
             PrecioMax = precioMax,
             Pagina = pagina,
-            TamanoPagina = tamanoPagina
+            TamanoPagina = tamanoPagina,
+            TerminoBusqueda = terminoBusqueda,
+            CriterioOrden = criterioOrden
      }
         ;
         var resultado = await manejador.EjecucionAsync(consulta);
