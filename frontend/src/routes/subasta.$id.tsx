@@ -88,12 +88,12 @@ function SalaEnVivo() {
         setSubasta((actual) =>
           actual
             ? {
-                ...actual,
-                montoMayorPuja: puja.monto,
-                cantidadPujas: actual.cantidadPujas + 1,
-                ganadorId: puja.postorId,
-                ganadorAlias: puja.postorAlias,
-              }
+              ...actual,
+              montoMayorPuja: puja.monto,
+              cantidadPujas: actual.cantidadPujas + 1,
+              ganadorId: puja.postorId,
+              ganadorAlias: puja.postorAlias,
+            }
             : null,
         );
         setDestello(true);
@@ -122,11 +122,11 @@ function SalaEnVivo() {
         setSubasta((actual) =>
           actual
             ? {
-                ...actual,
-                estado: "Finalizada",
-                ganadorId: fin.ganadorId ?? actual.ganadorId,
-                montoFinal: fin.montoFinal ?? actual.montoFinal,
-              }
+              ...actual,
+              estado: "Finalizada",
+              ganadorId: fin.ganadorId ?? actual.ganadorId,
+              montoFinal: fin.montoFinal ?? actual.montoFinal,
+            }
             : null,
         );
       }
@@ -175,13 +175,12 @@ function SalaEnVivo() {
   const esFinalizada = subasta.estado === "Finalizada" || subasta.estado === "Desierta";
 
   const pujaMayor = historialPujas[0];
-  
-  const precioActual = pujaMayor?.monto ?? subasta.montoMayorPuja ?? subasta.precioBase;
-  const proximaPujaMinima = pujaMayor
-    ? pujaMayor.monto + subasta.incrementoMinimo
-    : subasta.montoMayorPuja
+
+  const precioActual = subasta.montoMayorPuja ?? subasta.precioBase;
+  const proximaPujaMinima = precioActual + subasta.incrementoMinimo;
+  /*  : subasta.montoMayorPuja
       ? subasta.montoMayorPuja + subasta.incrementoMinimo
-      : subasta.precioBase;
+      : subasta.precioBase;*/
   const lider = usuarioActual && (subasta.ganadorId === usuarioActual.id || pujaMayor?.postorId === usuarioActual.id);
   const superado =
     !lider &&
