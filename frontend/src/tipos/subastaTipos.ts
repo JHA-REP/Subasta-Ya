@@ -101,7 +101,7 @@ export interface InformacionTemporizador {
   subastaId: number;
   segundosRestantes: number;
   critico: boolean;
-  fechaFin: string;
+  fechaFinUtc: string;
 }
 
 export interface EventoExtensionAntiSniping {

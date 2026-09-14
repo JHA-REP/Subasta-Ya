@@ -104,7 +104,7 @@ function SalaEnVivo() {
     const cancelacionTemporizador = servicioTiempoReal.registroTemporizador((info) => {
       if (info.subastaId === subastaId) {
         setSubasta((actual) =>
-          actual ? { ...actual, fechaFin: info.fechaFin } : null,
+          actual ? { ...actual, fechaFin: info.fechaFinUtc } : null,
         );
       }
     });
