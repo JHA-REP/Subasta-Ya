@@ -20,18 +20,7 @@ export function HotCarousel({ subastas, now }: PropiedadesCarrusel) {
   const { usuarioActual } = useUsuario();
   const [indice, setIndice] = useState(0);
 
-  const destacadas = useMemo(
-    () =>
-      subastas
-        .filter((a) => a.estado === "Activa")
-        .sort(
-          (a, b) =>
-            b.cantidadPujas - a.cantidadPujas ||
-            new Date(a.fechaFin).getTime() - new Date(b.fechaFin).getTime(),
-        )
-        .slice(0, 5),
-    [subastas],
-  );
+  const destacadas = subastas;
 
   useEffect(() => {
     if (destacadas.length < 2) return;
