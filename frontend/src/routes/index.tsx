@@ -126,7 +126,7 @@ function Catalogo() {
     const refresh = () => {
       cargarCatalogo();
       servicioSubastas.listado({ estado: "Activa", criterioOrden: "destacadas", tamanoPagina: 5 })
-        .then(r => setListaCarrusel(r.items)).catch(() => {});
+        .then(r => setListaCarrusel(r.items)).catch(() => { });
     };
 
     const cancelacionPuja = servicioTiempoReal.registroPuja(refresh);
@@ -151,13 +151,11 @@ function Catalogo() {
           <p className="animate-rise inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Flame className="size-3.5" aria-hidden /> Descubre las mejores subastas en tiempo real
           </p>
-          <h1 className="animate-rise mt-5 max-w-3xl text-4xl font-bold leading-[1.05] md:text-6xl">
-            El martillo cae <span className="text-ember">en vivo</span>. Pujá antes de que se apague
-            el reloj.
+          <h1 className="animate-rise mt-5  text-4xl font-bold leading-[1.05] md:text-6xl">
+            El martillo cae <span className="text-ember">en vivo</span>. <br /> Pujá antes de que se apague el reloj.
           </h1>
-          <p className="animate-rise mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
-            Contadores en tiempo real, historial de ofertas al instante y extensión automática de
-            segundos cuando alguien puja sobre la hora.
+          <p className="animate-rise mt-4  text-base text-muted-foreground md:text-lg">
+            Contadores en tiempo real, historial de ofertas al instante y extensión automática de segundos cuando alguien puja sobre la hora.
           </p>
         </div>
       </section>
@@ -255,8 +253,8 @@ function Catalogo() {
             </div>
             {totalPaginas > 1 && (
               <div className="mt-8 flex items-center justify-center gap-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   disabled={paginaActual === 1}
                   onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
                 >
@@ -265,8 +263,8 @@ function Catalogo() {
                 <span className="text-sm text-muted-foreground">
                   Página {paginaActual} de {totalPaginas}
                 </span>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   disabled={paginaActual === totalPaginas}
                   onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
                 >

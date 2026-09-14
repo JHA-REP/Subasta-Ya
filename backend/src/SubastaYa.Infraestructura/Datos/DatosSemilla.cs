@@ -244,7 +244,7 @@ public static class DatosSemilla
             "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e"
         };
 
-        for (int i = 6; i <= 105; i++)
+        for (int i = 1000; i < 1100; i++)
         {
             var precioBase = random.Next(100, 5000);
             var fechaInicio = FechaReferencia.AddDays(random.Next(-5, 0));

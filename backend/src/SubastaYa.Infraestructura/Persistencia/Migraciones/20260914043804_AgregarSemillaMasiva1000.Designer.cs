@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubastaYa.Infraestructura.Persistencia;
 
@@ -11,9 +12,11 @@ using SubastaYa.Infraestructura.Persistencia;
 namespace SubastaYa.Infraestructura.Migraciones
 {
     [DbContext(typeof(SubastaYaDbContext))]
-    partial class SubastaYaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914043804_AgregarSemillaMasiva1000")]
+    partial class AgregarSemillaMasiva1000
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
