@@ -1,4 +1,4 @@
-﻿using SubastaYa.Aplicacion.CasosDeUso.Pujas.Consultas;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.Consultas;
 using SubastaYa.Aplicacion.DTOs;
 using SubastaYa.Aplicacion.Mapeos;
 using SubastaYa.Dominio.Entidades;
@@ -22,8 +22,10 @@ public class ListadoPujasPorSubastaManejador
         var pujas = await _repositorioPujas.FiltradasAsync(p => p.SubastaId == consulta.SubastaId);
         var usuarios = await _repositorioUsuarios.TodosAsync();
         
-                return pujas.Select(p =>
-                {
+        return pujas
+            .OrderByDescending(p => p.Monto)
+            .Select(p =>
+            {
             var alias = usuarios.FirstOrDefault(u => u.Id == p.PostorId)?.Alias;
                         return p.MapeoDto(alias);
                     });

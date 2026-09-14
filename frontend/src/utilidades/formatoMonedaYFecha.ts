@@ -19,15 +19,23 @@ export const formatoTiempoRestante = (milisegundos: number): string => {
   return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
 };
 
+const parsearFechaSegura = (marcaTiempo: string | number) => {
+  if (typeof marcaTiempo === "string") {
+    const normalizado = marcaTiempo.endsWith("Z") || marcaTiempo.includes("+") || marcaTiempo.match(/-\d\d:\d\d$/) ? marcaTiempo : marcaTiempo + "Z";
+    return new Date(normalizado);
+  }
+  return new Date(marcaTiempo);
+};
+
 export const formatoHora = (marcaTiempo: string | number): string =>
-  new Date(marcaTiempo).toLocaleTimeString("es-AR", {
+  parsearFechaSegura(marcaTiempo).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   });
 
 export const formatoFecha = (marcaTiempo: string | number): string =>
-  new Date(marcaTiempo).toLocaleString("es-AR", {
+  parsearFechaSegura(marcaTiempo).toLocaleString("es-AR", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

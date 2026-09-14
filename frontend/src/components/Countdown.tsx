@@ -22,12 +22,16 @@ export function Countdown({
   size = "sm",
   className,
 }: PropiedadesContador) {
-  const tiempoFinal = typeof endAt === "string" ? new Date(endAt).getTime() : endAt;
-  const tiempoInicio = startAt !== undefined
-    ? typeof startAt === "string"
-      ? new Date(startAt).getTime()
-      : startAt
-    : undefined;
+  const parseDate = (val: string | number) => {
+    if (typeof val === "string") {
+      const normalized = val.endsWith("Z") || val.includes("+") || val.match(/-\d\d:\d\d$/) ? val : val + "Z";
+      return new Date(normalized).getTime();
+    }
+    return val;
+  };
+
+  const tiempoFinal = parseDate(endAt);
+  const tiempoInicio = startAt !== undefined ? parseDate(startAt) : undefined;
 
   const noIniciada = tiempoInicio !== undefined && now < tiempoInicio;
   const objetivo = noIniciada ? tiempoInicio! : tiempoFinal;

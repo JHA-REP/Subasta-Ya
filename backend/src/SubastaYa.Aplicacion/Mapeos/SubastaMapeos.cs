@@ -8,6 +8,9 @@ public static class SubastaMapeos
 {
     public static SubastaDto MapeoDto(this Subasta entidad)
     {
+        var liderActual = entidad.Pujas?.OrderByDescending(p => p.Monto).FirstOrDefault();
+        bool esFinalizada = entidad.Estado == EstadoSubasta.Finalizada || entidad.Estado == EstadoSubasta.Desierta;
+
         return new SubastaDto
         {
             Id = entidad.Id,
@@ -25,8 +28,8 @@ public static class SubastaMapeos
             Estado = entidad.Estado,
             CantidadPujas = entidad.Pujas?.Count ?? 0,
             MontoMayorPuja = entidad.PrecioActual != entidad.PrecioInicial ? entidad.PrecioActual : null,
-            GanadorId = entidad.GanadorId,
-            GanadorAlias = entidad.Ganador?.Alias,
+            GanadorId = esFinalizada ? entidad.GanadorId : liderActual?.PostorId,
+            GanadorAlias = esFinalizada ? entidad.Ganador?.Alias : liderActual?.Postor?.Alias ?? string.Empty,
             MontoFinal = entidad.MontoFinal
         };
     }

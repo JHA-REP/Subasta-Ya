@@ -65,7 +65,7 @@ function SalaEnVivo() {
         ]);
         if (!montado) return;
         setSubasta(detalleSubasta);
-        setHistorialPujas(pujas);
+        setHistorialPujas([...pujas].sort((a, b) => b.monto - a.monto));
       } catch {
         /* Error al cargar */
       } finally {
@@ -88,14 +88,18 @@ function SalaEnVivo() {
         setSubasta((actual) =>
           actual
             ? {
-              ...actual,
-              montoMayorPuja: puja.monto,
-              cantidadPujas: actual.cantidadPujas + 1,
-              ganadorId: puja.postorId,
-              ganadorAlias: puja.postorAlias,
-            }
+                ...actual,
+                montoMayorPuja: puja.monto,
+                cantidadPujas: actual.cantidadPujas + 1,
+                ganadorId: puja.postorId,
+                ganadorAlias: puja.postorAlias,
+              }
             : null,
         );
+
+        // Refrescar la billetera para reflejar la devolución del saldo si el usuario fue superado
+        eventoActualizacionBilletera();
+
         setDestello(true);
         setTimeout(() => setDestello(false), 700);
       }
