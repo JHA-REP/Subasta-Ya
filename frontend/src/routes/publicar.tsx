@@ -187,7 +187,7 @@ function Publicar() {
         if (categorias.length > 0) {
           setFormulario((f) => ({
             ...f,
-            categoria: f.categoria || String(categorias[0].id),
+            categoria: f.categoria || String(categorias[0]?.id ?? 1),
           }));
         }
       })
