@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Crown, Gavel, TrendingUp, Users, Zap } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNow } from "@/hooks/use-now";
@@ -268,11 +269,23 @@ function SalaEnVivo() {
             )}
           >
             <div className="relative aspect-video bg-muted">
-              <img
-                src={subasta.imagenUrl}
-                alt={subasta.titulo}
-                className="size-full object-cover"
-              />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <img
+                    src={subasta.imagenUrl}
+                    alt={subasta.titulo}
+                    className="size-full object-cover cursor-pointer transition-opacity hover:opacity-90"
+                    title="Hacé clic para ver la imagen completa"
+                  />
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl border-none bg-transparent p-0 shadow-none">
+                  <img
+                    src={subasta.imagenUrl}
+                    alt={subasta.titulo}
+                    className="max-h-[85vh] w-full rounded-md object-contain"
+                  />
+                </DialogContent>
+              </Dialog>
               <div className="absolute left-3 top-3 flex gap-2">
                 <Badge variant="secondary">{subasta.categoria || "General"}</Badge>
                 {esActiva && (
