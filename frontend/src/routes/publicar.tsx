@@ -55,7 +55,10 @@ const esquemaValidacion = z
       .trim()
       .min(20, "Contá algo más del producto (mín. 20 caracteres)")
       .max(1200),
-    imagenUrl: z.string().trim().url("Ingresá una URL de imagen válida"),
+    imagenUrl: z.string().trim().refine(
+      (val) => val.startsWith("data:image/webp;base64,") || val.startsWith("http"),
+      "Debe subir una imagen o ingresar una URL válida"
+    ),
     categoria: z.string().min(1, "Elegí una categoría"),
     precioInicial: z.number().positive("El precio base debe ser mayor a 0"),
     incrementoMinimo: z.number().positive("El incremento mínimo debe ser mayor a 0"),
@@ -94,6 +97,66 @@ type ClaveCampo =
   | "fechaFin";
 
 type ErroresFormulario = { [K in ClaveCampo]?: string | undefined };
+
+/**
+ * Procesa la imagen seleccionada por el usuario: la redimensiona y convierte a formato WebP.
+ * Asegura que el tamaño final del string codificado en base64 no exceda los 64KB.
+ */
+const procesarImagenWebp = (archivo: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = (evento) => {
+      const img = new Image();
+      img.onload = () => {
+        let ancho = img.width;
+        let alto = img.height;
+        // Reducimos el tamaño inicial a un máximo razonable para evitar cuelgues
+        const tamañoMaximo = 800;
+        if (ancho > tamañoMaximo || alto > tamañoMaximo) {
+          const proporcion = Math.min(tamañoMaximo / ancho, tamañoMaximo / alto);
+          ancho = Math.round(ancho * proporcion);
+          alto = Math.round(alto * proporcion);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = ancho;
+        canvas.height = alto;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Error al procesar la imagen"));
+
+        let calidad = 0.8;
+        let iteracion = 0;
+        const iterarCompresion = () => {
+          ctx.clearRect(0, 0, ancho, alto);
+          ctx.drawImage(img, 0, 0, ancho, alto);
+          const dataUrl = canvas.toDataURL("image/webp", calidad);
+          
+          // Se verifica el tamaño de la cadena en base64 para que no exceda 64KB (65536 caracteres)
+          if (dataUrl.length <= 65536 || iteracion >= 10 || calidad <= 0.1) {
+            if (dataUrl.length > 65536) {
+              return reject(new Error("La imagen es muy compleja y excede el límite. Intentá con otra."));
+            }
+            resolve(dataUrl);
+          } else {
+            // Si el tamaño supera el límite, se reduce la resolución y la calidad iterativamente
+            ancho = Math.round(ancho * 0.8);
+            alto = Math.round(alto * 0.8);
+            canvas.width = ancho;
+            canvas.height = alto;
+            calidad -= 0.1;
+            iteracion++;
+            iterarCompresion();
+          }
+        };
+        iterarCompresion();
+      };
+      img.onerror = () => reject(new Error("El archivo seleccionado no es una imagen válida"));
+      img.src = evento.target?.result as string;
+    };
+    lector.onerror = () => reject(new Error("Hubo un error al leer el archivo"));
+    lector.readAsDataURL(archivo);
+  });
+};
 
 function Publicar() {
   const navigate = useNavigate();
@@ -136,6 +199,19 @@ function Publicar() {
       setFormulario((f) => ({ ...f, [campo]: valor }));
       setErrores((e) => ({ ...e, [campo]: undefined }));
     };
+
+  const eventoArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    
+    try {
+      const dataUrl = await procesarImagenWebp(archivo);
+      eventoActualizacionCampo("imagenUrl")(dataUrl);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al procesar la imagen");
+      e.target.value = ""; // Limpia el input si falla
+    }
+  };
 
   const eventoEnvioFormulario = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,11 +302,12 @@ function Publicar() {
           </CampoFormulario>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <CampoFormulario etiqueta="URL de la imagen" error={errores.imagenUrl}>
+            <CampoFormulario etiqueta="Imagen del producto" error={errores.imagenUrl}>
               <Input
-                value={formulario.imagenUrl}
-                onChange={(e) => eventoActualizacionCampo("imagenUrl")(e.target.value)}
-                placeholder="https://images.unsplash.com/…"
+                type="file"
+                accept="image/*"
+                onChange={eventoArchivo}
+                className="cursor-pointer"
               />
             </CampoFormulario>
             <CampoFormulario etiqueta="Categoría" error={errores.categoria}>
