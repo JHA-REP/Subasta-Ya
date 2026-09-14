@@ -143,7 +143,8 @@ public static class DatosSemilla
 
     private static void SemillaSubastas(ModelBuilder constructor)
     {
-        constructor.Entity<Subasta>().HasData(
+        var subastas = new List<Subasta>
+        {
             // Subasta activa estándar ✓
             new Subasta
             {
@@ -226,7 +227,48 @@ public static class DatosSemilla
                 FechaInicio = FechaReferencia.AddDays(-10),
                 FechaFin = FechaReferencia.AddDays(-2)
             }
-        );
+        };
+
+        var random = new Random(12345);
+        var titulos = new[] { "iPhone 14", "Sillón de Cuero", "Cámara Reflex", "Guitarra Eléctrica", "Reloj Automático", "Consola de Videojuegos", "Zapatillas de Running", "Drone Profesional", "Monitor UltraWide", "Tablet 11 pulgadas", "MacBook Air", "Silla Ergonómica", "Auriculares Inalámbricos", "Micrófono de Condensador", "Teclado Mecánico RGB", "Proyector 4K", "Bicicleta Plegable", "Lámpara Inteligente", "Cafetera de Cápsulas", "Mochila de Viaje" };
+        var imagenes = new[] {
+            "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9",
+            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+            "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+            "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f",
+            "https://images.unsplash.com/photo-1503602642458-232111445657",
+            "https://images.unsplash.com/photo-1496181133206-80ce9b88a853",
+            "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+            "https://images.unsplash.com/photo-1507646227500-4d389b0012be",
+            "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf",
+            "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e"
+        };
+
+        for (int i = 6; i <= 105; i++)
+        {
+            var precioBase = random.Next(100, 5000);
+            var fechaInicio = FechaReferencia.AddDays(random.Next(-5, 0));
+            // Finalizan en un rango de 1 a 14 días (máximo 2 semanas)
+            var fechaFin = FechaReferencia.AddDays(random.Next(1, 14)).AddHours(random.Next(0, 23)).AddMinutes(random.Next(0, 59));
+
+            subastas.Add(new Subasta
+            {
+                Id = i,
+                Titulo = $"{titulos[random.Next(titulos.Length)]} - Lote #{i}",
+                Descripcion = $"Lote {i}: excelente artículo generado automáticamente. Cuenta con todas las certificaciones y se encuentra en perfecto estado. Oferta imperdible.",
+                PrecioInicial = precioBase,
+                PrecioActual = precioBase,
+                IncrementoMinimo = random.Next(1, 10) * 50,
+                ImagenUrl = imagenes[random.Next(imagenes.Length)],
+                CategoriaId = random.Next(1, 5),
+                VendedorId = 2,
+                Estado = EstadoSubasta.Activa,
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin
+            });
+        }
+
+        constructor.Entity<Subasta>().HasData(subastas);
     }
 
     private static void SemillaPujas(ModelBuilder constructor)
