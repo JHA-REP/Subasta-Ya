@@ -174,12 +174,14 @@ function SalaEnVivo() {
   const esProxima = subasta.estado === "Pendiente";
   const esFinalizada = subasta.estado === "Finalizada" || subasta.estado === "Desierta";
 
-  const precioActual = subasta.montoMayorPuja ?? subasta.precioBase;
-  const proximaPujaMinima = subasta.montoMayorPuja
-    ? subasta.montoMayorPuja + subasta.incrementoMinimo
-    : subasta.precioBase;
-
   const pujaMayor = historialPujas[0];
+  
+  const precioActual = pujaMayor?.monto ?? subasta.montoMayorPuja ?? subasta.precioBase;
+  const proximaPujaMinima = pujaMayor
+    ? pujaMayor.monto + subasta.incrementoMinimo
+    : subasta.montoMayorPuja
+      ? subasta.montoMayorPuja + subasta.incrementoMinimo
+      : subasta.precioBase;
   const lider = usuarioActual && (subasta.ganadorId === usuarioActual.id || pujaMayor?.postorId === usuarioActual.id);
   const superado =
     !lider &&
