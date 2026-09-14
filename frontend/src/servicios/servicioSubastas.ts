@@ -2,14 +2,14 @@ import { clienteHttp } from "./clienteHttp";
 import type { Subasta, NuevaSubastaEntrada } from "@/tipos/subastaTipos";
 
 export interface FiltrosSubasta {
-  estado?: string;
-  categoriaId?: number;
-  precioMin?: number;
-  precioMax?: number;
-  pagina?: number;
-  tamanoPagina?: number;
-  terminoBusqueda?: string;
-  criterioOrden?: string;
+  estado?: string | undefined;
+  categoriaId?: number | undefined;
+  precioMin?: number | undefined;
+  precioMax?: number | undefined;
+  pagina?: number | undefined;
+  tamanoPagina?: number | undefined;
+  terminoBusqueda?: string | undefined;
+  criterioOrden?: string | undefined;
 }
 
 export interface PaginadoResponse<T> {
@@ -22,12 +22,12 @@ export interface PaginadoResponse<T> {
 
 /**
  * Servicio de comunicaciones para la entidad Subasta.
- * Nombres basados en sustantivos y conceptos.
+
  */
 export const servicioSubastas = {
   listado: async (filtros: FiltrosSubasta = {}): Promise<PaginadoResponse<Subasta>> => {
     const query = new URLSearchParams();
-    
+
     if (filtros.estado && filtros.estado !== "todas") query.append("estado", filtros.estado);
     if (filtros.categoriaId) query.append("categoriaId", String(filtros.categoriaId));
     if (filtros.precioMin !== undefined) query.append("precioMin", String(filtros.precioMin));
