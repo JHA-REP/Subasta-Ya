@@ -10,6 +10,6 @@ export const servicioPujas = {
     clienteHttp.consulta<Puja[]>(`/subastas/${subastaId}/pujas`),
 
 
-  creacion: (datos: NuevaPujaEntrada): Promise<Puja> =>
-    clienteHttp.envio<Puja>("/pujas", datos),
+  creacion: (subastaId: number, datos: NuevaPujaEntrada): Promise<Puja> =>
+    clienteHttp.envio<Puja>(`/subastas/${subastaId}/pujas`, datos),
 };

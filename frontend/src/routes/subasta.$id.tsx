@@ -232,7 +232,8 @@ function SalaEnVivo() {
 
     setEnviandoPuja(true);
     try {
-      await servicioPujas.creacion({
+      await servicioPujas.creacion(
+        subastaId, {
         subastaId,
         postorId: usuarioActual.id,
         monto,
