@@ -22,6 +22,11 @@ public class UsuariosControlador : ControllerBase
     public async Task<IActionResult> DetallePorId(int id, [FromServices] UsuarioPorIdManejador manejador)
     {
         var resultado = await manejador.EjecucionAsync(new UsuarioPorIdConsulta(id));
+
+        if (resultado == null)
+        {
+            return NotFound();
+        }
         return Ok(resultado);
     }
 }

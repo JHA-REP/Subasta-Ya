@@ -25,6 +25,6 @@ public class BilleterasControlador : ControllerBase
     {
         comando.UsuarioId = usuarioId;
         var resultado = await manejador.EjecucionAsync(comando);
-        return Ok(resultado);
+        return CreatedAtAction(nameof(DetallePorUsuario), new { usuarioId }, resultado);
     }
 }

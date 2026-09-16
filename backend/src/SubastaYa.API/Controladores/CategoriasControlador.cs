@@ -23,6 +23,10 @@ public class CategoriasControlador : ControllerBase
     public async Task<IActionResult> DetallePorId(int id, [FromServices] CategoriaPorIdManejador manejador)
     {
         var resultado = await manejador.EjecucionAsync(new CategoriaPorIdConsulta(id));
+        if (resultado == null)
+        {
+            return NotFound();
+        }
         return Ok(resultado);
     }
 }

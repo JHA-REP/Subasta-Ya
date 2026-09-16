@@ -22,6 +22,6 @@ public class PujasControlador : ControllerBase
     public async Task<IActionResult> Creacion([FromBody] PujaRegistroComando comando, [FromServices] PujaRegistroManejador manejador)
     {
         var resultado = await manejador.EjecucionAsync(comando);
-        return Ok(resultado);
+        return CreatedAtAction(nameof(ListadoPorSubasta), new { subastaId = resultado.SubastaId }, resultado);
     }
 }
