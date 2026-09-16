@@ -2,10 +2,10 @@ using SubastaYa.Dominio.Enumeraciones;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 
-/// <summary>
+
 /// Datos del resultado de finalización de una subasta.
 /// Se utiliza para notificaciones en tiempo real y respuestas del manejador.
-/// </summary>
+
 public class SubastaFinalizadaDto
 {
     public int SubastaId { get; set; }

@@ -20,6 +20,7 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 /// - Emitir notificaciones en tiempo real (puja + extensión Anti-Sniping si aplica).
 /// No contiene lógica de dominio propia — delega a reglas y entidades.
 /// </summary>
+
 public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, PujaDto>
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;

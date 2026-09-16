@@ -7,11 +7,11 @@ namespace SubastaYa.Api.Controladores;
 
 //  endpoint de billeteras con manejadores cqrs
 [ApiController]
-[Route("api/billeteras")]
+[Route("api/usuarios/{usuarioId:int}/billetera")]
 public class BilleterasControlador : ControllerBase
 {
     // detalle de billetera por usuario
-    [HttpGet("usuario/{usuarioId:int}")]
+    [HttpGet]
     public async Task<IActionResult> DetallePorUsuario(int usuarioId, [FromServices] BilleteraPorUsuarioManejador manejador)
     {
         var resultado = await manejador.EjecucionAsync(new BilleteraPorUsuarioConsulta(usuarioId));
@@ -20,7 +20,7 @@ public class BilleterasControlador : ControllerBase
     }
 
     // acreditacion simulada de saldo
-    [HttpPost("usuario/{usuarioId:int}/acreditaciones")]
+    [HttpPost("acreditaciones")]
     public async Task<IActionResult> AcreditacionSimulada(int usuarioId, [FromBody] AcreditacionSaldoComando comando, [FromServices] AcreditacionSaldoManejador manejador)
     {
         comando.UsuarioId = usuarioId;

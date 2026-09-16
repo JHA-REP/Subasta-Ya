@@ -7,6 +7,7 @@ using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
 using SubastaYa.Dominio.Interfaces;
 
+
 namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.AcreditarSaldo;
 
 public class AcreditacionSaldoManejador : IComandoManejador<AcreditacionSaldoComando, BilleteraDto>

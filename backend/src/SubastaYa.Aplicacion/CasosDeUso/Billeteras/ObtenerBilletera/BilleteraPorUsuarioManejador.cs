@@ -3,6 +3,7 @@ using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Interfaces;
 
+
 namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
 
 public class BilleteraPorUsuarioManejador : IConsultaManejador<BilleteraPorUsuarioConsulta, BilleteraDto?>

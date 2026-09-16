@@ -6,12 +6,9 @@ import type { Billetera, AcreditacionEntrada } from "@/tipos/subastaTipos";
  * Nombres basados en sustantivos y conceptos.
  */
 export const servicioBilleteras = {
-  detallePorUsuario: (usuarioId: number): Promise<Billetera> =>
-    clienteHttp.consulta<Billetera>(`/billeteras/usuario/${usuarioId}`),
+  detallePorUsuario: (usuarioId: number) =>
+    clienteHttp.consulta<Billetera>(`/usuarios/${usuarioId}/billetera`),
 
-  acreditacion: (usuarioId: number, datos: AcreditacionEntrada): Promise<Billetera> =>
-    clienteHttp.envio<Billetera>(`/billeteras/usuario/${usuarioId}/acreditaciones`, {
-      ...datos,
-      usuarioId,
-    }),
+  acreditacion: (usuarioId: number, datos: AcreditacionEntrada) =>
+    clienteHttp.envio<Billetera>(`/usuarios/${usuarioId}/billetera/acreditaciones`, { ...datos, usuarioId })
 };

@@ -10,7 +10,7 @@ namespace SubastaYa.Api.Controladores;
 public class PujasControlador : ControllerBase
 {
     // listado de pujas por subasta
-    [HttpGet("subasta/{subastaId:int}")]
+    [HttpGet("/api/subastas/{subastaId:int}/pujas")]
     public async Task<IActionResult> ListadoPorSubasta(int subastaId, [FromServices] ListadoPujasPorSubastaManejador manejador)
     {
         var resultado = await manejador.EjecucionAsync(new ListadoPujasPorSubastaConsulta(subastaId));
