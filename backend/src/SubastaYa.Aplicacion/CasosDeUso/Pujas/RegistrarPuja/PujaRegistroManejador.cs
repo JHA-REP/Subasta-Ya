@@ -75,7 +75,7 @@ public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, Puja
             PujaValidacionReglas.ValidacionVentanaTemporal(subasta.FechaInicio, subasta.FechaFin, fechaHoraActual);
             PujaValidacionReglas.ValidacionPostorDiferenteDeVendedor(comando.PostorId, subasta.VendedorId);
             PujaValidacionReglas.ValidacionMontoOferta(comando.Monto, subasta.PrecioInicial, subasta.IncrementoMinimo, pujaLiderAnterior?.Monto);
-            PujaValidacionReglas.ValidacionSaldoDisponible(billetera.SaldoDisponible + billetera.SaldoRetenido, billetera.SaldoRetenido, comando.Monto);
+            PujaValidacionReglas.ValidacionSaldoDisponible(billetera.SaldoDisponible,comando.Monto);
 
             // Liberar saldo al líder anterior
             if (pujaLiderAnterior != null)

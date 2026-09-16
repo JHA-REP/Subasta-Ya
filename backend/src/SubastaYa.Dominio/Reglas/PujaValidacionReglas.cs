@@ -43,13 +43,12 @@ public static class PujaValidacionReglas
         }
     }
 
-    public static void ValidacionSaldoDisponible(decimal saldoTotal, decimal saldoRetenido, decimal montoOferta)
+    public static void ValidacionSaldoDisponible(decimal saldoDisponible, decimal montoOferta)
     {
-        var saldoDisponibleCalculado = saldoTotal - saldoRetenido;
-
-        if (saldoDisponibleCalculado < montoOferta)
+        if (saldoDisponible < montoOferta)
         {
-            throw new ExcepcionValidacion($"Saldo disponible insuficiente (${saldoDisponibleCalculado}). Se requiere un saldo disponible de ${montoOferta}.");
+            throw new ExcepcionValidacion($"Saldo disponible insuficiente (${saldoDisponible}). Se requiere un saldo disponible de ${montoOferta}.");
         }
     }
+
 }
