@@ -1,10 +1,11 @@
-﻿using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
 
-public class ListadoCategoriasManejador
+public class ListadoCategoriasManejador : IConsultaManejador<ListadoCategoriasConsulta, IEnumerable<CategoriaDto>>
 {
     private readonly IRepositorio<Categoria> _repositorioCategorias;
 

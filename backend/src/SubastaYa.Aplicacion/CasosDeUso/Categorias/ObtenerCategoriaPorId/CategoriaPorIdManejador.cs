@@ -1,5 +1,6 @@
-﻿using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
 using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Excepciones;
@@ -7,7 +8,7 @@ using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Categorias.ObtenerCategoriaPorId;
 
-public class CategoriaPorIdManejador
+public class CategoriaPorIdManejador : IConsultaManejador<CategoriaPorIdConsulta, CategoriaDto>
 {
     private readonly IRepositorio<Categoria> _repositorioCategorias;
 

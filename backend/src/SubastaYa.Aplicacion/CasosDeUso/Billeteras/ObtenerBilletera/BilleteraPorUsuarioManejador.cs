@@ -1,10 +1,11 @@
-﻿using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
 
-public class BilleteraPorUsuarioManejador
+public class BilleteraPorUsuarioManejador : IConsultaManejador<BilleteraPorUsuarioConsulta, BilleteraDto?>
 {
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IRepositorio<Usuario> _repositorioUsuarios;

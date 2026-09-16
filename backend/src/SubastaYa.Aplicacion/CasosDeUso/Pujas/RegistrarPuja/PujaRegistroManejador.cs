@@ -1,12 +1,13 @@
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.Comun.DTOs;
 using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
 using SubastaYa.Dominio.Interfaces;
 using SubastaYa.Dominio.Reglas;
-using SubastaYa.Aplicacion.Comun.DTOs;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 
@@ -19,7 +20,7 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 /// - Emitir notificaciones en tiempo real (puja + extensión Anti-Sniping si aplica).
 /// No contiene lógica de dominio propia — delega a reglas y entidades.
 /// </summary>
-public class PujaRegistroManejador
+public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, PujaDto>
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;
     private readonly IRepositorio<Puja> _repositorioPujas;

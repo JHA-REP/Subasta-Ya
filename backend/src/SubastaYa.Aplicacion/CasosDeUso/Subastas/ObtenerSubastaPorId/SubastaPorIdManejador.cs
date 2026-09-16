@@ -1,11 +1,12 @@
-﻿using SubastaYa.Aplicacion.Comun.DTOs;
+using SubastaYa.Aplicacion.Comun.DTOs;
 using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.ObtenerSubastaPorId;
 
-public class SubastaPorIdManejador
+public class SubastaPorIdManejador : IConsultaManejador<SubastaPorIdConsulta, SubastaDto?>
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;
     private readonly IRepositorio<Categoria> _repositorioCategorias;

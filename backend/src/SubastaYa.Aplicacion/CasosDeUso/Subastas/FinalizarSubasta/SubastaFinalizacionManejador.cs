@@ -1,4 +1,5 @@
 using SubastaYa.Aplicacion.Comun.Interfaces;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Interfaces;
@@ -15,7 +16,7 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 /// - Notificación en tiempo real via INotificadorSubastas.
 /// Invocado exclusivamente por el ProcesadorSubastas (BackgroundService).
 /// </summary>
-public class SubastaFinalizacionManejador
+public class SubastaFinalizacionManejador : IComandoManejador<SubastaFinalizacionComando, IEnumerable<ResultadoLiquidacionDto>>
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;
     private readonly IRepositorio<Puja> _repositorioPujas;

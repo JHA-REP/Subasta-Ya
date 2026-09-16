@@ -1,10 +1,11 @@
 using SubastaYa.Aplicacion.Comun.Mapeos;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Interfaces;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
 
-public class ListadoPujasPorSubastaManejador
+public class ListadoPujasPorSubastaManejador : IConsultaManejador<ListadoPujasPorSubastaConsulta, IEnumerable<PujaDto>>
 {
     private readonly IRepositorio<Puja> _repositorioPujas;
     private readonly IRepositorio<Usuario> _repositorioUsuarios;
