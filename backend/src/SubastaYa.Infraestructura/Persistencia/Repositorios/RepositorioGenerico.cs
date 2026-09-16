@@ -36,6 +36,34 @@ public class RepositorioGenerico<T> : IRepositorio<T> where T : EntidadBase
         return await _conjunto.Where(predicado).ToListAsync();
     }
 
+    public async Task<(IEnumerable<T> Items, int TotalItems)> ObtenerPaginadoAsync(
+        Func<IQueryable<T>, IQueryable<T>>? consulta,
+        int pagina,
+        int tamanoPagina,
+        params string[] incluirPropiedades)
+    {
+        IQueryable<T> query = _conjunto.AsNoTracking();
+
+        foreach (var include in incluirPropiedades)
+        {
+            query = query.Include(include);
+        }
+
+        if (consulta != null)
+        {
+            query = consulta(query);
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .Skip((pagina - 1) * tamanoPagina)
+            .Take(tamanoPagina)
+            .ToListAsync();
+
+        return (items, totalItems);
+    }
+
     public async Task AltaAsync(T entidad)
     {
         await _conjunto.AddAsync(entidad);

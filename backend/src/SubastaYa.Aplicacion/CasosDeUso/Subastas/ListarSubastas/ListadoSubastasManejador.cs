@@ -9,83 +9,53 @@ namespace SubastaYa.Aplicacion.CasosDeUso.Subastas.ListarSubastas;
 public class ListadoSubastasManejador : IConsultaManejador<ListadoSubastasConsulta, ResultadoPaginadoDto<SubastaDto>>
 {
     private readonly IRepositorio<Subasta> _repositorioSubastas;
-    private readonly IRepositorio<Categoria> _repositorioCategorias;
-    private readonly IRepositorio<Usuario> _repositorioUsuarios;
-    private readonly IRepositorio<Puja> _repositorioPujas;
-    public ListadoSubastasManejador(
-        IRepositorio<Subasta> repositorioSubastas,
-        IRepositorio<Categoria> repositorioCategorias,
-        IRepositorio<Usuario> repositorioUsuarios,
-        IRepositorio<Puja> repositorioPujas)
+
+    public ListadoSubastasManejador(IRepositorio<Subasta> repositorioSubastas)
     {
         _repositorioSubastas = repositorioSubastas;
-        _repositorioCategorias = repositorioCategorias;
-        _repositorioUsuarios = repositorioUsuarios;
-        _repositorioPujas = repositorioPujas;
     }
 
     public async Task<ResultadoPaginadoDto<SubastaDto>> EjecucionAsync(ListadoSubastasConsulta consulta)
     {
-        var todasLasSubastas = await _repositorioSubastas.TodosAsync();
+        var (items, totalItems) = await _repositorioSubastas.ObtenerPaginadoAsync(
+            query =>
+            {
+                if (consulta.Estado.HasValue)
+                    query = query.Where(s => s.Estado == consulta.Estado.Value);
 
-        // aplicar filtros
-        var subastasFiltradas = todasLasSubastas.AsQueryable();
+                if (consulta.CategoriaId.HasValue)
+                    query = query.Where(s => s.CategoriaId == consulta.CategoriaId.Value);
 
-        if (consulta.Estado.HasValue)
-            subastasFiltradas = subastasFiltradas.Where(s => s.Estado == consulta.Estado.Value);
+                if (consulta.PrecioMin.HasValue)
+                    query = query.Where(s => s.PrecioActual >= consulta.PrecioMin.Value);
 
-        if (consulta.CategoriaId.HasValue)
-            subastasFiltradas = subastasFiltradas.Where(s => s.CategoriaId == consulta.CategoriaId.Value);
+                if (consulta.PrecioMax.HasValue)
+                    query = query.Where(s => s.PrecioActual <= consulta.PrecioMax.Value);
 
-        if (consulta.PrecioMin.HasValue)
-            subastasFiltradas = subastasFiltradas.Where(s => s.PrecioActual >= consulta.PrecioMin.Value);
+                if (!string.IsNullOrWhiteSpace(consulta.TerminoBusqueda))
+                {
+                    var termino = consulta.TerminoBusqueda.Trim().ToLower();
+                    query = query.Where(s => s.Titulo.ToLower().Contains(termino) || s.Descripcion.ToLower().Contains(termino));
+                }
 
-        if (consulta.PrecioMax.HasValue)
-            subastasFiltradas = subastasFiltradas.Where(s => s.PrecioActual <= consulta.PrecioMax.Value);
-
-        if (!string.IsNullOrWhiteSpace(consulta.TerminoBusqueda))
-        {
-            var termino = consulta.TerminoBusqueda.ToLower();
-            subastasFiltradas = subastasFiltradas.Where(s => 
-                s.Titulo.ToLower().Contains(termino) || 
-                s.Descripcion.ToLower().Contains(termino));
-        }
-
-        // aplicar ordenamiento
-        subastasFiltradas = consulta.CriterioOrden switch
-        {
-            "puja-desc" => subastasFiltradas.OrderByDescending(s => s.PrecioActual).ThenBy(s => s.FechaFin),
-            "puja-asc" => subastasFiltradas.OrderBy(s => s.PrecioActual).ThenBy(s => s.FechaFin),
-            "ofertas" => subastasFiltradas.OrderByDescending(s => s.Pujas.Count()).ThenBy(s => s.FechaFin),
-            "destacadas" => subastasFiltradas.OrderByDescending(s => s.Pujas.Count()).ThenBy(s => s.FechaFin),
-            _ => subastasFiltradas.OrderBy(s => s.FechaFin) // "tiempo" por defecto
-        };
-
-        // contar total antes de paginar
-        var totalItems = subastasFiltradas.Count();
-
-        // paginar y materializar la lista
-        var listaFiltrada = subastasFiltradas
-            .Skip((consulta.Pagina - 1) * consulta.TamanoPagina)
-            .Take(consulta.TamanoPagina)
-            .ToList();
-
-        // carga manual de relaciones - una sola query por tipo, no N queries
-        var categorias = await _repositorioCategorias.TodosAsync();
-        var usuarios = await _repositorioUsuarios.TodosAsync();
-        var subastasIds = listaFiltrada.Select(s => s.Id).ToList();
-        var pujas = await _repositorioPujas.FiltradasAsync(p => subastasIds.Contains(p.SubastaId));
-
-        foreach (var s in listaFiltrada)
-        {
-            s.Categoria = categorias.FirstOrDefault(c => c.Id == s.CategoriaId);
-            s.Vendedor = usuarios.FirstOrDefault(u => u.Id == s.VendedorId);
-            s.Pujas = pujas.Where(p => p.SubastaId == s.Id).ToList();
-        }
+                return consulta.CriterioOrden switch
+                {
+                    "puja-desc" => query.OrderByDescending(s => s.PrecioActual).ThenBy(s => s.FechaFin),
+                    "puja-asc" => query.OrderBy(s => s.PrecioActual).ThenBy(s => s.FechaFin),
+                    "ofertas" => query.OrderByDescending(s => s.Pujas.Count).ThenBy(s => s.FechaFin),
+                    "destacadas" => query.OrderByDescending(s => s.Pujas.Count).ThenBy(s => s.FechaFin),
+                    _ => query.OrderBy(s => s.FechaFin) // "tiempo" por defecto
+                };
+            },
+            consulta.Pagina,
+            consulta.TamanoPagina,
+            nameof(Subasta.Categoria),
+            nameof(Subasta.Vendedor),
+            nameof(Subasta.Pujas));
 
         return new ResultadoPaginadoDto<SubastaDto>
         {
-            Items = listaFiltrada.Select(s => s.MapeoDto()),
+            Items = items.Select(s => s.MapeoDto()),
             TotalItems = totalItems,
             Pagina = consulta.Pagina,
             TamanoPagina = consulta.TamanoPagina,

@@ -23,6 +23,9 @@ public class Program
         // Infraestructura completa (incluye IAuditoriaRepositorio e IAuditoriaServicio)
         constructor.Services.ConInfraestructura(constructor.Configuration);
 
+        // Manejadores de aplicación
+        constructor.Services.AddScoped<SubastaFinalizacionManejador>();
+
         // Notificador stub (sin SignalR en este proceso)
         constructor.Services.AddScoped<INotificadorSubastas, NotificadorSubastasRegistro>();
 

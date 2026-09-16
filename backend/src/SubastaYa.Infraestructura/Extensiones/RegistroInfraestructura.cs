@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
@@ -33,10 +31,6 @@ public static class RegistroInfraestructura
 
         // Servicios de aplicación
         servicios.AddScoped<IAuditoriaServicio, AuditoriaServicio>();
-
-        // Manejadores de casos de uso
-        servicios.AddScoped<SubastaFinalizacionManejador>();
-        servicios.AddScoped<PujaRegistroManejador>();
 
         return servicios;
     }

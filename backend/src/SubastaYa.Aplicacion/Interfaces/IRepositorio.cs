@@ -24,6 +24,15 @@ public interface IRepositorio<T> where T : EntidadBase
     /// </summary>
     Task<IEnumerable<T>> FiltradasAsync(Expression<Func<T, bool>> predicado);
 
+ 
+    /// Consulta paginada con filtrado, ordenamiento y carga de navegación ejecutada directamente en el origen de datos.
+
+    Task<(IEnumerable<T> Items, int TotalItems)> ObtenerPaginadoAsync(
+        Func<IQueryable<T>, IQueryable<T>>? consulta,
+        int pagina,
+        int tamanoPagina,
+        params string[] incluirPropiedades);
+
     /// <summary>
     /// Alta de una nueva entidad.
     /// </summary>

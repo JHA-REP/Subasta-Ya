@@ -5,7 +5,9 @@ using SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.ObtenerCategoriaPorId;
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.CrearSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.ListarSubastas;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.ObtenerSubastaPorId;
 using SubastaYa.Aplicacion.CasosDeUso.Usuarios.ListarUsuarios;
@@ -34,11 +36,13 @@ constructor.Services.AddSwaggerGen();
 // Infraestructura (EF Core, Repositorios, Auditoría, Manejadores críticos)
 constructor.Services.ConInfraestructura(constructor.Configuration);
 
-// Manejadores CQRS de Aplicación (no registrados en Infraestructura por no depender de ella)
+// Manejadores CQRS de Aplicación
 constructor.Services.AddScoped<NuevaSubastaManejador>();
 constructor.Services.AddScoped<SubastaPorIdManejador>();
 constructor.Services.AddScoped<ListadoSubastasManejador>();
+constructor.Services.AddScoped<SubastaFinalizacionManejador>();
 
+constructor.Services.AddScoped<PujaRegistroManejador>();
 constructor.Services.AddScoped<ListadoPujasPorSubastaManejador>();
 
 constructor.Services.AddScoped<AcreditacionSaldoManejador>();
