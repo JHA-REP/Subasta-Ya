@@ -1,5 +1,5 @@
 using System.Text.Json;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Interfaces;

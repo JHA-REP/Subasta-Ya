@@ -4,11 +4,6 @@
     <ProjectReference Include="..\SubastaYa.Dominio\SubastaYa.Dominio.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="CasosDeUso\Categorias\Comandos\" />
-    <Folder Include="CasosDeUso\Usuarios\Comandos\" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

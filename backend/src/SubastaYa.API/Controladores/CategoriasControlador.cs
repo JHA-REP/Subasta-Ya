@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.CasosDeUso.Categorias.Consultas;
-using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
+
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.ObtenerCategoriaPorId;
 
 namespace SubastaYa.API.Controladores;
 

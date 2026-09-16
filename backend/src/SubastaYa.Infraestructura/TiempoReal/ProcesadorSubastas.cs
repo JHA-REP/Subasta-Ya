@@ -1,8 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 
 namespace SubastaYa.Infraestructura.TiempoReal;
 

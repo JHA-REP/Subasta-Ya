@@ -1,6 +1,8 @@
 using Moq;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
+using SubastaYa.Aplicacion.Comun.DTOs;
+using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Dominio.Enumeraciones;
 
 namespace SubastaYa.Tests;

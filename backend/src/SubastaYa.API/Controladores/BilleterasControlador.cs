@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Consultas;
-using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.AcreditarSaldo;
+
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
 
 namespace SubastaYa.Api.Controladores;
 

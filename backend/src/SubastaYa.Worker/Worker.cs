@@ -1,5 +1,4 @@
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 
 namespace SubastaYa.Worker;
 

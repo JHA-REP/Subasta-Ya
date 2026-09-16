@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Consultas;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.CrearSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.ListarSubastas;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.ObtenerSubastaPorId;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 

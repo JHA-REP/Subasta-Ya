@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SubastaYa.Aplicacion.DTOs;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.Comun.Interfaces;
+using SubastaYa.Aplicacion.Comun.DTOs;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Interfaces;
 

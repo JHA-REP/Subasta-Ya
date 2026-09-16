@@ -1,11 +1,16 @@
 using System.Text.Json.Serialization;
 using SubastaYa.API.Middleware;
-using SubastaYa.Aplicacion.CasosDeUso.Billeteras.Manejadores;
-using SubastaYa.Aplicacion.CasosDeUso.Categorias.Manejadores;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
-using SubastaYa.Aplicacion.CasosDeUso.Usuarios.Manejadores;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.AcreditarSaldo;
+using SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
+using SubastaYa.Aplicacion.CasosDeUso.Categorias.ObtenerCategoriaPorId;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.CrearSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.ListarSubastas;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.ObtenerSubastaPorId;
+using SubastaYa.Aplicacion.CasosDeUso.Usuarios.ListarUsuarios;
+using SubastaYa.Aplicacion.CasosDeUso.Usuarios.ObtenerUsuarioPorId;
+using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Infraestructura.Extensiones;
 using SubastaYa.Infraestructura.TiempoReal;
 

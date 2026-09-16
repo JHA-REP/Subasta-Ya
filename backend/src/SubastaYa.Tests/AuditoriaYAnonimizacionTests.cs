@@ -1,6 +1,6 @@
 using Moq;
-using SubastaYa.Aplicacion.Interfaces;
-using SubastaYa.Aplicacion.Mapeos;
+using SubastaYa.Aplicacion.Comun.Interfaces;
+using SubastaYa.Aplicacion.Comun.Mapeos;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 

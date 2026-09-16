@@ -1,7 +1,6 @@
 using Moq;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Subastas.Manejadores;
-using SubastaYa.Aplicacion.Interfaces;
+using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
+using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Interfaces;
@@ -88,7 +87,7 @@ public class SubastaFinalizacionManejadorTests
             It.IsAny<TipoAccionAuditoria>(), It.IsAny<string>(), It.IsAny<int>(),
             It.IsAny<object>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
-        _mockNotificador.Setup(n => n.EventoSubastaFinalizada(It.IsAny<SubastaYa.Aplicacion.DTOs.SubastaFinalizadaDto>()))
+        _mockNotificador.Setup(n => n.EventoSubastaFinalizada(It.IsAny<SubastaFinalizadaDto>()))
             .Returns(Task.CompletedTask);
 
         var manejador = CrearManejador();
@@ -118,7 +117,7 @@ public class SubastaFinalizacionManejadorTests
             It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()), Times.Once);
 
         // Verificar notificación enviada
-        _mockNotificador.Verify(n => n.EventoSubastaFinalizada(It.IsAny<SubastaYa.Aplicacion.DTOs.SubastaFinalizadaDto>()), Times.Once);
+        _mockNotificador.Verify(n => n.EventoSubastaFinalizada(It.IsAny<SubastaFinalizadaDto>()), Times.Once);
     }
 
     [Fact]

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.Comandos;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.Consultas;
-using SubastaYa.Aplicacion.CasosDeUso.Pujas.Manejadores;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 
 namespace SubastaYa.Api.Controladores;
 
