@@ -2,7 +2,8 @@ using System.Text.Json;
 using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
-using SubastaYa.Dominio.Interfaces;
+using SubastaYa.Aplicacion.Interfaces;
+
 
 namespace SubastaYa.Infraestructura.Servicios;
 

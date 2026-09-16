@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SubastaYa.Dominio.Excepciones;
-using SubastaYa.Dominio.Interfaces;
+
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
 
 namespace SubastaYa.Infraestructura.Repositorios;

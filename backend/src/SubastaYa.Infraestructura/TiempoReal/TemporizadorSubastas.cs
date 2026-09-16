@@ -4,7 +4,8 @@ using Microsoft.Extensions.Logging;
 using SubastaYa.Aplicacion.Comun.Interfaces;
 using SubastaYa.Aplicacion.Comun.DTOs;
 using SubastaYa.Dominio.Enumeraciones;
-using SubastaYa.Dominio.Interfaces;
+using SubastaYa.Aplicacion.Interfaces;
+
 
 namespace SubastaYa.Infraestructura.TiempoReal;
 

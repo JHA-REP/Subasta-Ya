@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
 using SubastaYa.Aplicacion.Comun.Interfaces;
-using SubastaYa.Dominio.Interfaces;
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
 using SubastaYa.Infraestructura.Repositorios;
 using SubastaYa.Infraestructura.Servicios;

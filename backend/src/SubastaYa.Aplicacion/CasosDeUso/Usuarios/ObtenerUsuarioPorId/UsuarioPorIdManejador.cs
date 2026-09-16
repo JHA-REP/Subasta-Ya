@@ -3,7 +3,7 @@ using SubastaYa.Aplicacion.Comun.Mapeos;
 using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Excepciones;
-using SubastaYa.Dominio.Interfaces;
+
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Usuarios.ObtenerUsuarioPorId;
 

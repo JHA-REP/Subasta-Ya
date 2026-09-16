@@ -6,7 +6,7 @@ using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 using SubastaYa.Dominio.Excepciones;
-using SubastaYa.Dominio.Interfaces;
+
 using SubastaYa.Dominio.Reglas;
 
 namespace SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;

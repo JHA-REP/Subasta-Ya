@@ -1,4 +1,4 @@
-namespace SubastaYa.Dominio.Interfaces;
+namespace SubastaYa.Aplicacion.Interfaces;
 
 /// <summary>
 /// Contrato de Unidad de Trabajo para coordinar transacciones.

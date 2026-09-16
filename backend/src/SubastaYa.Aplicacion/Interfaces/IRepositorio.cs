@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using SubastaYa.Dominio.Entidades;
 
-namespace SubastaYa.Dominio.Interfaces;
+namespace SubastaYa.Aplicacion.Interfaces;
 
 /// <summary>
 /// Contrato genérico de repositorio para operaciones de persistencia.

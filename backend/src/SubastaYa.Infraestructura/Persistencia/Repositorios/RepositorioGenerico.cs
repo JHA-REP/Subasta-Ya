@@ -1,7 +1,8 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Dominio.Entidades;
-using SubastaYa.Dominio.Interfaces;
+
+using SubastaYa.Aplicacion.Interfaces;
 using SubastaYa.Infraestructura.Persistencia;
 
 namespace SubastaYa.Infraestructura.Repositorios;

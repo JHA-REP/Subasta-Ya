@@ -1,7 +1,7 @@
 using SubastaYa.Dominio.Entidades;
 using SubastaYa.Dominio.Enumeraciones;
 
-namespace SubastaYa.Dominio.Interfaces;
+namespace SubastaYa.Aplicacion.Interfaces;
 
 /// <summary>
 /// Repositorio de auditoría inmutable.
