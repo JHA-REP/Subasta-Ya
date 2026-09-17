@@ -29,4 +29,15 @@ public class UsuariosControlador : ControllerBase
         }
         return Ok(resultado);
     }
+
+    // listado de participaciones en subastas por usuario
+    [HttpGet("{usuarioId:int}/actividad/pujas")]
+    public async Task<IActionResult> ListadoPujasPorUsuario(
+        int usuarioId,
+        [FromServices] SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorUsuario.ListadoPujasPorUsuarioManejador manejador)
+    {
+        var resultado = await manejador.EjecucionAsync(
+            new SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorUsuario.ListadoPujasPorUsuarioConsulta(usuarioId));
+        return Ok(resultado);
+    }
 }

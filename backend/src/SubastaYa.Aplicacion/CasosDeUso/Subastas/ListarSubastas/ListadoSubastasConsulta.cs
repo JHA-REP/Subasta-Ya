@@ -12,6 +12,7 @@ public class ListadoSubastasConsulta
     public int TamanoPagina { get; set; } = 10;
     public string? TerminoBusqueda { get; set; }
     public string? CriterioOrden { get; set; }
+    public int? VendedorId { get; set; }
 }
 
 //los que tienen "?" son opcionales, los que no tienen son obligatorios.

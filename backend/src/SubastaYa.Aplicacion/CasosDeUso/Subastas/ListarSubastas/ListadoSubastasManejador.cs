@@ -32,6 +32,9 @@ public class ListadoSubastasManejador : IConsultaManejador<ListadoSubastasConsul
                 if (consulta.PrecioMax.HasValue)
                     query = query.Where(s => s.PrecioActual <= consulta.PrecioMax.Value);
 
+                if (consulta.VendedorId.HasValue)
+                    query = query.Where(s => s.VendedorId == consulta.VendedorId.Value);
+
                 if (!string.IsNullOrWhiteSpace(consulta.TerminoBusqueda))
                 {
                     var termino = consulta.TerminoBusqueda.Trim().ToLower();

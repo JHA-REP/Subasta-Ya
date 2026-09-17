@@ -5,6 +5,7 @@ using SubastaYa.Aplicacion.CasosDeUso.Billeteras.ObtenerBilletera;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.ListarCategorias;
 using SubastaYa.Aplicacion.CasosDeUso.Categorias.ObtenerCategoriaPorId;
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorSubasta;
+using SubastaYa.Aplicacion.CasosDeUso.Pujas.ListarPujasPorUsuario;
 using SubastaYa.Aplicacion.CasosDeUso.Pujas.RegistrarPuja;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.CrearSubasta;
 using SubastaYa.Aplicacion.CasosDeUso.Subastas.FinalizarSubasta;
@@ -44,6 +45,7 @@ constructor.Services.AddScoped<SubastaFinalizacionManejador>();
 
 constructor.Services.AddScoped<PujaRegistroManejador>();
 constructor.Services.AddScoped<ListadoPujasPorSubastaManejador>();
+constructor.Services.AddScoped<ListadoPujasPorUsuarioManejador>();
 
 constructor.Services.AddScoped<AcreditacionSaldoManejador>();
 constructor.Services.AddScoped<BilleteraPorUsuarioManejador>();

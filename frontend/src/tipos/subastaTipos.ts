@@ -68,6 +68,28 @@ export interface NuevaPujaEntrada {
   monto: number;
 }
 
+export interface ParticipacionSubasta {
+  subastaId: number;
+  titulo: string;
+  descripcion: string;
+  imagenUrl: string;
+  categoria: string;
+  vendedorAlias: string;
+  estado: EstadoSubasta;
+  fechaInicio: string;
+  fechaFin: string;
+  precioActual: number;
+  miMayorPuja: number;
+  fechaUltimaPuja: string;
+  cantidadMisPujas: number;
+  cantidadPujasTotales: number;
+  esGanador: boolean;
+  estaLiderando: boolean;
+  fueSuperado: boolean;
+  ganadorAlias: string | null;
+  montoFinal: number | null;
+}
+
 export interface MovimientoContableDto {
   id: number;
   billeteraId: number;

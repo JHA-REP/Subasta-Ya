@@ -24,10 +24,11 @@ public class SubastasControlador : ControllerBase
      [FromQuery] int pagina = 1,
      [FromQuery] int tamanoPagina = 10,
      [FromQuery] string? terminoBusqueda = null,
-     [FromQuery] string? criterioOrden = null)
+     [FromQuery] string? criterioOrden = null,
+     [FromQuery] int? vendedorId = null)
     {
         var consulta = new ListadoSubastasConsulta
-     {
+        {
             Estado = estado,
             CategoriaId = categoriaId,
             PrecioMin = precioMin,  
@@ -35,9 +36,9 @@ public class SubastasControlador : ControllerBase
             Pagina = pagina,
             TamanoPagina = tamanoPagina,
             TerminoBusqueda = terminoBusqueda,
-            CriterioOrden = criterioOrden
-     }
-        ;
+            CriterioOrden = criterioOrden,
+            VendedorId = vendedorId
+        };
         var resultado = await manejador.EjecucionAsync(consulta);
         return Ok(resultado);
     }

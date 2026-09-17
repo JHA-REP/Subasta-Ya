@@ -10,6 +10,7 @@ export interface FiltrosSubasta {
   tamanoPagina?: number | undefined;
   terminoBusqueda?: string | undefined;
   criterioOrden?: string | undefined;
+  vendedorId?: number | undefined;
 }
 
 export interface PaginadoResponse<T> {
@@ -36,6 +37,7 @@ export const servicioSubastas = {
     if (filtros.tamanoPagina) query.append("tamanoPagina", String(filtros.tamanoPagina));
     if (filtros.terminoBusqueda) query.append("terminoBusqueda", filtros.terminoBusqueda);
     if (filtros.criterioOrden) query.append("criterioOrden", filtros.criterioOrden);
+    if (filtros.vendedorId !== undefined) query.append("vendedorId", String(filtros.vendedorId));
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
     return clienteHttp.consulta<PaginadoResponse<Subasta>>(`/subastas${queryString}`);
