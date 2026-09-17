@@ -1,4 +1,4 @@
-﻿namespace SubastaYa.Tests;
+namespace SubastaYa.Tests;
 
 public class UnitTest1
 {

@@ -64,27 +64,27 @@ Se crean primero las capas internas (sin dependencias) y luego las externas:
 
 ```
 # 1. Dominio — Núcleo sin dependencias
-dotnet new classlib -o src/SubastaYa.Dominio -f net9.0
+dotnet new classlib -o src/SubastaYa.Dominio -f net8.0
 
 # 2. Aplicación — Casos de uso
-dotnet new classlib -o src/SubastaYa.Aplicacion -f net9.0
+dotnet new classlib -o src/SubastaYa.Aplicacion -f net8.0
 
 # 3. Infraestructura — Acceso a datos y servicios técnicos
-dotnet new classlib -o src/SubastaYa.Infraestructura -f net9.0
+dotnet new classlib -o src/SubastaYa.Infraestructura -f net8.0
 
 # 4. API Web — Punto de entrada HTTP con controladores clásicos
-dotnet new webapi -o src/SubastaYa.API -f net9.0 --use-controllers
+dotnet new webapi -o src/SubastaYa.API -f net8.0 --use-controllers
 
 # 5. Worker — Servicio en segundo plano
-dotnet new worker -o src/SubastaYa.Worker -f net9.0
+dotnet new worker -o src/SubastaYa.Worker -f net8.0
 
 # 6. Tests — Pruebas unitarias con xUnit
-dotnet new xunit -o src/SubastaYa.Tests -f net9.0
+dotnet new xunit -o src/SubastaYa.Tests -f net8.0
 ```
 
 **Explicación de los flags:**
 * `-o <ruta>`: Carpeta de salida donde se crea el proyecto.
-* `-f net9.0`: Framework destino (.NET 9). Puede cambiarse a `net8.0` según el SDK instalado.
+* `-f net8.0`: Framework destino (.NET 8).
 * `--use-controllers`: Genera la Web API con la arquitectura tradicional de Controllers (en vez de Minimal APIs).
 
 ### Paso C — Agregar todos los proyectos a la solución

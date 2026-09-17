@@ -15,6 +15,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { AuctionEvents } from "@/components/AuctionEvents";
 import { Toaster } from "@/components/ui/sonner";
 import { ProveedorUsuario } from "@/contextos/contextoUsuario";
+import { VideoChromaIntro } from "@/components/VideoChromaIntro";
 
 function NotFoundComponent() {
   return (
@@ -132,6 +133,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ProveedorUsuario>
+        <VideoChromaIntro />
         <div className="min-h-screen">
           <SiteHeader />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
