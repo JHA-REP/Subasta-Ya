@@ -130,7 +130,7 @@ const procesarImagenWebp = (archivo: File): Promise<string> => {
           ctx.clearRect(0, 0, ancho, alto);
           ctx.drawImage(img, 0, 0, ancho, alto);
           const dataUrl = canvas.toDataURL("image/webp", calidad);
-          
+
           // Se verifica el tamaño de la cadena en base64 para que no exceda 64KB (65536 caracteres)
           if (dataUrl.length <= 65536 || iteracion >= 10 || calidad <= 0.1) {
             if (dataUrl.length > 65536) {
@@ -191,7 +191,7 @@ function Publicar() {
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const eventoActualizacionCampo =
@@ -203,7 +203,7 @@ function Publicar() {
   const eventoArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
-    
+
     try {
       const dataUrl = await procesarImagenWebp(archivo);
       eventoActualizacionCampo("imagenUrl")(dataUrl);
@@ -303,12 +303,31 @@ function Publicar() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <CampoFormulario etiqueta="Imagen del producto" error={errores.imagenUrl}>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={eventoArchivo}
-                className="cursor-pointer"
-              />
+              <div className="flex items-center gap-2">
+                <label className="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground">
+                  <span className="truncate">{formulario.imagenUrl ? "Imagen seleccionada" : "Seleccionar archivo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={eventoArchivo}
+                    className="hidden"
+                  />
+                </label>
+                {formulario.imagenUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      eventoActualizacionCampo("imagenUrl")("");
+                      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                      if (fileInput) fileInput.value = "";
+                    }}
+                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md border border-destructive bg-destructive/10 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                    title="Borrar imagen seleccionada"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </CampoFormulario>
             <CampoFormulario etiqueta="Categoría" error={errores.categoria}>
               <Select
