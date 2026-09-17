@@ -38,10 +38,10 @@ export function HotCarousel({ subastas, now }: PropiedadesCarrusel) {
   if (!destacadas.length) return null;
 
   return (
-    <section aria-label="Subastas más pujadas próximas a vencer" className="mx-auto max-w-7xl px-4 pt-8">
+    <section aria-label="Subastas más populares próximas a vencer" className="mx-auto max-w-7xl px-4 pt-8">
       <div className="mb-4 flex items-center gap-2">
         <Flame className="size-5 text-primary" aria-hidden />
-        <h2 className="text-xl font-bold md:text-2xl">Las más pujadas, por vencer</h2>
+        <h2 className="text-xl font-bold md:text-2xl">Las más populares, por vencer</h2>
       </div>
 
       <div className="surface-card relative overflow-hidden rounded-2xl">
@@ -143,9 +143,8 @@ export function HotCarousel({ subastas, now }: PropiedadesCarrusel) {
                     e.preventDefault();
                     setIndice(i);
                   }}
-                  className={`h-2 rounded-full transition-all ${
-                    i === indice ? "w-6 bg-primary" : "w-2 bg-muted-foreground/40"
-                  }`}
+                  className={`h-2 rounded-full transition-all ${i === indice ? "w-6 bg-primary" : "w-2 bg-muted-foreground/40"
+                    }`}
                 />
               ))}
             </div>

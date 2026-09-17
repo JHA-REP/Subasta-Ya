@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Lock, PiggyBank, Wallet } from "lucide-react";
+import { Lock, PiggyBank, RotateCw, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { useUsuario } from "@/contextos/contextoUsuario";
 import { servicioBilleteras } from "@/servicios/servicioBilleteras";
 import { formatoFecha, formatoMoneda } from "@/utilidades/formatoMonedaYFecha";
-import type { MovimientoSesion, TipoMovimiento } from "@/tipos/subastaTipos";
+import type { MovimientoContableDto, TipoMovimiento } from "@/tipos/subastaTipos";
 
 export const Route = createFileRoute("/billetera")({
   ssr: false,
@@ -40,34 +40,73 @@ export const Route = createFileRoute("/billetera")({
   component: Billetera,
 });
 
-const etiquetasTipos: Record<TipoMovimiento, string> = {
-  Carga: "Ingreso",
-  Retencion: "Retención",
-  Liberacion: "Liberación",
-  Debito: "Débito",
-  Credito: "Recaudación",
+const configuracionTipos: Record<
+  TipoMovimiento,
+  { etiqueta: string; claseBadge: string; claseMonto: string; prefijo: string }
+> = {
+  Carga: {
+    etiqueta: "Ingreso",
+    claseBadge: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    claseMonto: "text-emerald-600 dark:text-emerald-400 font-semibold",
+    prefijo: "+",
+  },
+  Retencion: {
+    etiqueta: "Retención",
+    claseBadge: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+    claseMonto: "text-amber-600 dark:text-amber-400 font-medium",
+    prefijo: "🔒 ",
+  },
+  Liberacion: {
+    etiqueta: "Liberación",
+    claseBadge: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30",
+    claseMonto: "text-sky-600 dark:text-sky-400 font-medium",
+    prefijo: "🔓 ",
+  },
+  Debito: {
+    etiqueta: "Débito ganado",
+    claseBadge: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
+    claseMonto: "text-rose-600 dark:text-rose-400 font-semibold",
+    prefijo: "-",
+  },
+  Credito: {
+    etiqueta: "Venta liquidada",
+    claseBadge: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    claseMonto: "text-emerald-600 dark:text-emerald-400 font-semibold",
+    prefijo: "+",
+  },
 };
 
 function Billetera() {
   const { usuarioActual, billeteraActual, eventoActualizacionBilletera } = useUsuario();
   const [montoEntrada, setMontoEntrada] = useState("");
   const [procesandoAcreditacion, setProcesandoAcreditacion] = useState(false);
-  const [listaMovimientos, setListaMovimientos] = useState<MovimientoSesion[]>([]);
+  const [movimientosLocales, setMovimientosLocales] = useState<MovimientoContableDto[]>([]);
+  const [cargandoMovimientos, setCargandoMovimientos] = useState(false);
 
-  const claveMovimientos = `subastaya:movimientos_${usuarioActual?.id ?? "invitado"}`;
-
-  useEffect(() => {
+  const cargarMovimientos = useCallback(async () => {
+    if (!usuarioActual) return;
+    setCargandoMovimientos(true);
     try {
-      const guardados = localStorage.getItem(claveMovimientos);
-      if (guardados) {
-        setListaMovimientos(JSON.parse(guardados));
-      } else {
-        setListaMovimientos([]);
-      }
+      const datos = await servicioBilleteras.movimientosPorUsuario(usuarioActual.id);
+      setMovimientosLocales(datos);
     } catch {
-      setListaMovimientos([]);
+      // Fallback a los movimientos de billeteraActual si falla la consulta puntual
+      if (billeteraActual?.movimientos) {
+        setMovimientosLocales(billeteraActual.movimientos);
+      }
+    } finally {
+      setCargandoMovimientos(false);
     }
-  }, [claveMovimientos]);
+  }, [usuarioActual, billeteraActual?.movimientos]);
+
+  // Sincronizar movimientos cuando cambia usuario o billetera actual
+  useEffect(() => {
+    if (billeteraActual?.movimientos && billeteraActual.movimientos.length > 0) {
+      setMovimientosLocales(billeteraActual.movimientos);
+    } else {
+      cargarMovimientos();
+    }
+  }, [billeteraActual, cargarMovimientos]);
 
   const saldoTotal = billeteraActual?.saldo ?? 0;
   const saldoRetenido = billeteraActual?.saldoRetenido ?? 0;
@@ -96,18 +135,7 @@ function Billetera() {
     try {
       await servicioBilleteras.acreditacion(usuarioActual.id, { monto: valor });
       await eventoActualizacionBilletera();
-
-      const nuevoMovimiento: MovimientoSesion = {
-        id: Math.random().toString(36).slice(2, 10),
-        fecha: Date.now(),
-        tipo: "Carga",
-        detalle: "Acreditación de saldo en cuenta",
-        monto: valor,
-      };
-
-      const nuevaLista = [nuevoMovimiento, ...listaMovimientos];
-      setListaMovimientos(nuevaLista);
-      localStorage.setItem(claveMovimientos, JSON.stringify(nuevaLista));
+      await cargarMovimientos();
 
       setMontoEntrada("");
       toast.success("Saldo acreditado", {
@@ -120,6 +148,10 @@ function Billetera() {
       setProcesandoAcreditacion(false);
     }
   };
+
+  const listaMovimientos = movimientosLocales.length > 0
+    ? movimientosLocales
+    : (billeteraActual?.movimientos ?? []);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -180,56 +212,85 @@ function Billetera() {
             {procesandoAcreditacion ? "Procesando…" : "Acreditar fondos"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            Carga simulada para pruebas: actualiza tu saldo real en la base de datos de SubastaYa.
+            Carga simulada para pruebas: registra el movimiento contable real en la base de datos de SubastaYa.
           </p>
         </form>
 
         <div className="surface-card rounded-xl p-5">
-          <h2 className="text-lg font-semibold">Historial de movimientos de sesión</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Historial de movimientos</h2>
+              <p className="text-xs text-muted-foreground">
+                Libro mayor contable inmutable con ingresos, retenciones, liberaciones y liquidaciones.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={cargarMovimientos}
+              disabled={cargandoMovimientos}
+              className="gap-1.5 text-xs"
+              title="Actualizar movimientos"
+            >
+              <RotateCw className={cn("size-3.5", cargandoMovimientos && "animate-spin")} />
+              Actualizar
+            </Button>
+          </div>
+
           <div className="mt-4 max-h-[28rem] overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Detalle</TableHead>
+                  <TableHead>Detalle / Motivo</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {listaMovimientos.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                      Sin movimientos registrados en esta sesión. Realizá una carga de saldo para comenzar.
+                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      {cargandoMovimientos
+                        ? "Cargando movimientos contables…"
+                        : "Sin movimientos registrados en tu cuenta. Realizá una carga de saldo o participá de una subasta para comenzar."}
                     </TableCell>
                   </TableRow>
                 )}
-                {listaMovimientos.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
-                      {formatoFecha(m.fecha)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={m.tipo === "Debito" ? "destructive" : "secondary"}>
-                        {etiquetasTipos[m.tipo] || m.tipo}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">{m.detalle}</TableCell>
-                    <TableCell
-                      className={cn(
-                        "text-right font-mono text-sm",
-                        m.tipo === "Carga" || m.tipo === "Credito"
-                          ? "text-success"
-                          : m.tipo === "Debito"
-                            ? "text-destructive"
-                            : "text-muted-foreground",
-                      )}
-                    >
-                      {m.tipo === "Carga" || m.tipo === "Credito" ? "+" : ""}
-                      {formatoMoneda(m.monto)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {listaMovimientos.map((m) => {
+                  const config = configuracionTipos[m.tipo] ?? {
+                    etiqueta: m.tipo,
+                    claseBadge: "bg-muted text-muted-foreground",
+                    claseMonto: "text-foreground",
+                    prefijo: "",
+                  };
+
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                        {formatoFecha(m.fechaMovimiento)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn("whitespace-nowrap font-medium", config.claseBadge)}
+                        >
+                          {config.etiqueta}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-[18rem] text-sm md:max-w-xs">
+                        <span className="line-clamp-2" title={m.concepto}>
+                          {m.concepto}
+                        </span>
+                      </TableCell>
+                      <TableCell className={cn("text-right font-mono text-sm whitespace-nowrap", config.claseMonto)}>
+                        {config.prefijo}
+                        {formatoMoneda(m.monto)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

@@ -14,15 +14,18 @@ public class AcreditacionSaldoManejador : IComandoManejador<AcreditacionSaldoCom
 {
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IRepositorio<Usuario> _repositorioUsuarios;
+    private readonly IRepositorio<MovimientoContable> _repositorioMovimientos;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
 
     public AcreditacionSaldoManejador(
         IRepositorio<Billetera> repositorioBilleteras,
         IRepositorio<Usuario> repositorioUsuarios,
+        IRepositorio<MovimientoContable> repositorioMovimientos,
         IUnidadDeTrabajo unidadDeTrabajo)
     {
         _repositorioBilleteras = repositorioBilleteras;
         _repositorioUsuarios = repositorioUsuarios;
+        _repositorioMovimientos = repositorioMovimientos;
         _unidadDeTrabajo = unidadDeTrabajo;
     }
 
@@ -35,20 +38,24 @@ public class AcreditacionSaldoManejador : IComandoManejador<AcreditacionSaldoCom
 
         billetera.AcreditacionSaldo(comando.Monto);
 
-        billetera.Movimientos.Add(new MovimientoContable
+        var movimiento = new MovimientoContable
         {
+            BilleteraId = billetera.Id,
             Monto = comando.Monto,
-            Tipo = TipoMovimiento.Credito,
+            Tipo = TipoMovimiento.Carga,
             FechaMovimiento = DateTime.UtcNow,
-            Concepto = "Acreditación simulada de saldo"
-        });
+            Concepto = "Carga de saldo en cuenta"
+        };
 
+        await _repositorioMovimientos.AltaAsync(movimiento);
         _repositorioBilleteras.Modificacion(billetera);
         await _unidadDeTrabajo.ConfirmacionAsync();
 
         // carga manual de la relacion usuario para que el DTO tenga el alias
         billetera.Usuario = await _repositorioUsuarios.PorIdAsync(billetera.UsuarioId);
 
+        var movimientos = await _repositorioMovimientos.FiltradasAsync(m => m.BilleteraId == billetera.Id);
+        billetera.Movimientos = movimientos.OrderByDescending(m => m.FechaMovimiento).ToList();
 
         return billetera.MapeoDto();
     }

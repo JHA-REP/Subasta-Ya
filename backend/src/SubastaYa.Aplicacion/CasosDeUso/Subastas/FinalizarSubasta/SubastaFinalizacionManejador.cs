@@ -103,6 +103,7 @@ public class SubastaFinalizacionManejador : IComandoManejador<SubastaFinalizacio
             billeteraGanador.ConfirmacionRetencion(pujaGanadora.Monto);
             billeteraGanador.Movimientos.Add(new MovimientoContable
             {
+                BilleteraId = billeteraGanador.Id,
                 Tipo = TipoMovimiento.Debito,
                 Monto = pujaGanadora.Monto,
                 Concepto = $"Débito por adjudicación de subasta #{subasta.Id} — {subasta.Titulo}",
@@ -119,6 +120,7 @@ public class SubastaFinalizacionManejador : IComandoManejador<SubastaFinalizacio
             billeteraVendedor.AcreditacionSaldo(pujaGanadora.Monto);
             billeteraVendedor.Movimientos.Add(new MovimientoContable
             {
+                BilleteraId = billeteraVendedor.Id,
                 Tipo = TipoMovimiento.Credito,
                 Monto = pujaGanadora.Monto,
                 Concepto = $"Crédito por venta en subasta #{subasta.Id} — {subasta.Titulo}",

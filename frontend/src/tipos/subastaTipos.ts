@@ -68,6 +68,15 @@ export interface NuevaPujaEntrada {
   monto: number;
 }
 
+export interface MovimientoContableDto {
+  id: number;
+  billeteraId: number;
+  tipo: TipoMovimiento;
+  monto: number;
+  concepto: string;
+  fechaMovimiento: string;
+}
+
 export interface Billetera {
   id: number;
   usuarioId: number;
@@ -75,6 +84,7 @@ export interface Billetera {
   saldo: number;
   saldoRetenido: number;
   saldoDisponible: number;
+  movimientos?: MovimientoContableDto[];
 }
 
 export interface AcreditacionEntrada {

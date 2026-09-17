@@ -27,4 +27,13 @@ public class BilleterasControlador : ControllerBase
         var resultado = await manejador.EjecucionAsync(comando);
         return CreatedAtAction(nameof(DetallePorUsuario), new { usuarioId }, resultado);
     }
+
+    // listado de movimientos contables de la billetera
+    [HttpGet("movimientos")]
+    public async Task<IActionResult> ListarMovimientos(int usuarioId, [FromServices] BilleteraPorUsuarioManejador manejador)
+    {
+        var billetera = await manejador.EjecucionAsync(new BilleteraPorUsuarioConsulta(usuarioId));
+        if (billetera == null) return NotFound();
+        return Ok(billetera.Movimientos);
+    }
 }

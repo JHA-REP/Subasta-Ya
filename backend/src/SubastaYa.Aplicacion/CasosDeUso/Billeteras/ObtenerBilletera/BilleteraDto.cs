@@ -10,6 +10,7 @@ public class BilleteraDto
     public decimal Saldo { get; set; }
     public decimal SaldoRetenido { get; set; }
     public decimal SaldoDisponible => Saldo - SaldoRetenido;
+    public List<MovimientoContableDto> Movimientos { get; set; } = new();
 }
 
 

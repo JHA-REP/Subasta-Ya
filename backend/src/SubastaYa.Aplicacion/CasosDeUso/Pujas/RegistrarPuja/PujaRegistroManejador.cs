@@ -27,6 +27,7 @@ public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, Puja
     private readonly IRepositorio<Puja> _repositorioPujas;
     private readonly IRepositorio<Billetera> _repositorioBilleteras;
     private readonly IRepositorio<Usuario> _repositorioUsuarios;
+    private readonly IRepositorio<MovimientoContable> _repositorioMovimientos;
     private readonly IUnidadDeTrabajo _unidadDeTrabajo;
     private readonly INotificadorSubastas _notificador;
     private readonly IAuditoriaServicio _auditoria;
@@ -36,6 +37,7 @@ public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, Puja
         IRepositorio<Puja> repositorioPujas,
         IRepositorio<Billetera> repositorioBilleteras,
         IRepositorio<Usuario> repositorioUsuarios,
+        IRepositorio<MovimientoContable> repositorioMovimientos,
         IUnidadDeTrabajo unidadDeTrabajo,
         INotificadorSubastas notificador,
         IAuditoriaServicio auditoria)
@@ -44,6 +46,7 @@ public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, Puja
         _repositorioPujas = repositorioPujas;
         _repositorioBilleteras = repositorioBilleteras;
         _repositorioUsuarios = repositorioUsuarios;
+        _repositorioMovimientos = repositorioMovimientos;
         _unidadDeTrabajo = unidadDeTrabajo;
         _notificador = notificador;
         _auditoria = auditoria;
@@ -85,26 +88,32 @@ public class PujaRegistroManejador : IComandoManejador<PujaRegistroComando, Puja
                 if (billeteraLiderAnterior != null)
                 {
                     billeteraLiderAnterior.LiberacionSaldo(pujaLiderAnterior.Monto);
-                    billeteraLiderAnterior.Movimientos.Add(new MovimientoContable
+                    var movLiberacion = new MovimientoContable
                     {
+                        BilleteraId = billeteraLiderAnterior.Id,
                         Monto = pujaLiderAnterior.Monto,
                         Tipo = TipoMovimiento.Liberacion,
                         FechaMovimiento = fechaHoraActual,
-                        Concepto = $"Liberación de puja superada en subasta {comando.SubastaId}"
-                    });
+                        Concepto = $"Liberación de puja superada en subasta #{subasta.Id} — {subasta.Titulo}"
+                    };
+                    billeteraLiderAnterior.Movimientos.Add(movLiberacion);
+                    await _repositorioMovimientos.AltaAsync(movLiberacion);
                     _repositorioBilleteras.Modificacion(billeteraLiderAnterior);
                 }
             }
 
             // Retención al nuevo postor
             billetera.RetencionSaldo(comando.Monto);
-            billetera.Movimientos.Add(new MovimientoContable
+            var movRetencion = new MovimientoContable
             {
+                BilleteraId = billetera.Id,
                 Monto = comando.Monto,
                 Tipo = TipoMovimiento.Retencion,
                 FechaMovimiento = fechaHoraActual,
-                Concepto = $"Retención por puja en subasta {comando.SubastaId}"
-            });
+                Concepto = $"Retención por puja en subasta #{subasta.Id} — {subasta.Titulo}"
+            };
+            billetera.Movimientos.Add(movRetencion);
+            await _repositorioMovimientos.AltaAsync(movRetencion);
             _repositorioBilleteras.Modificacion(billetera);
 
             // Actualizar precio actual de la subasta
