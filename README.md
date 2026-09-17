@@ -1,99 +1,168 @@
 # SubastaYa — Plataforma de Subastas en Tiempo Real
 
-Plataforma integral de subastas en línea con liquidación financiera transaccional, comunicación bidireccional en tiempo real vía WebSockets (SignalR), arquitectura limpia (Clean Architecture) y frontend reactivo moderno.
-
----
+Plataforma integral de subastas en línea con liquidación financiera transaccional, comunicación bidireccional en tiempo real vía WebSockets (SignalR), arquitectura limpia y frontend moderno reactivo.
 
 ## Índice
 
-1. [Descripción General](#descripción-general)
-2. [Arquitectura y Funcionamiento Backend](#arquitectura-y-funcionamiento-backend)
-3. [Arquitectura y Funcionamiento Frontend](#arquitectura-y-funcionamiento-frontend)
-4. [Comunicación e Integración (REST + SignalR)](#comunicación-e-integración-rest--signalr)
-5. [Catálogo de Endpoints de la API](#catálogo-de-endpoints-de-la-api)
-6. [Reglas de Negocio Clave](#reglas-de-negocio-clave)
-7. [Guía Paso a Paso para la Ejecución](#guía-paso-a-paso-para-la-ejecución)
-8. [Usuarios y Datos de Prueba](#usuarios-y-datos-de-prueba)
+1. [Descripción General](#1-descripción-general)
+2. [Estructura del Proyecto y Clean Architecture](#2-estructura-del-proyecto-y-clean-architecture)
+3. [Creación de la Solución paso a paso (.NET CLI)](#3-creación-de-la-solución-paso-a-paso-net-cli)
+4. [Arquitectura y Funcionamiento Backend](#4-arquitectura-y-funcionamiento-backend)
+5. [Arquitectura y Funcionamiento Frontend](#5-arquitectura-y-funcionamiento-frontend)
+6. [Comunicación e Integración (REST + SignalR)](#6-comunicación-e-integración-rest--signalr)
+7. [Catálogo de Endpoints de la API](#7-catálogo-de-endpoints-de-la-api)
+8. [Reglas de Negocio Clave](#8-reglas-de-negocio-clave)
+9. [Guía de Ejecución](#9-guía-de-ejecución)
+10. [Usuarios y Datos de Prueba](#10-usuarios-y-datos-de-prueba)
 
----
 
-## Descripción General
+## 1. Descripción General
 
-**SubastaYa** permite a los usuarios publicar artículos, realizar ofertas en tiempo real y gestionar sus fondos mediante una billetera virtual integrada. El sistema garantiza consistencia transaccional completa (ACID) en operaciones monetarias, auditoría inmutable de eventos críticos, protección contra ofertas de último segundo (*anti-sniping*) y cierre automático de subastas mediante trabajadores en segundo plano (*Background Workers*).
+**SubastaYa** permite a los usuarios publicar artículos, realizar ofertas en tiempo real y gestionar sus fondos mediante una billetera virtual integrada. El sistema garantiza:
 
----
+* Consistencia transaccional completa (ACID) en operaciones monetarias (retención y liberación automática de saldos).
+* Auditoría inmutable de eventos críticos.
+* Protección contra ofertas de último segundo (Anti-Sniping).
+* Cierre y liquidación automática de subastas mediante trabajadores en segundo plano (Background Workers).
+* Actualización en vivo de pujas y temporizadores mediante WebSockets con SignalR.
 
-## Arquitectura y Funcionamiento Backend
 
-El backend está desarrollado sobre **.NET 9 (C#)** siguiendo los principios de **Clean Architecture (Onion Architecture)** y el patrón **CQRS** (Command Query Responsibility Segregation). Toda la nomenclatura del código respeta convención en castellano y nombres basados en sustantivos.
+## 2. Estructura del Proyecto y Clean Architecture
 
-### Capas del Sistema
+El backend sigue los principios de **Clean Architecture (Onion Architecture)**. La regla fundamental es que las dependencias siempre apuntan hacia adentro, hacia el núcleo de Dominio:
 
 ```
-backend/src/
-├── SubastaYa.Dominio          # Núcleo: Entidades, Objetos de Valor, Enums, Excepciones
-├── SubastaYa.Aplicacion       # Casos de Uso (Comandos, Consultas, Manejadores, DTOs, Mapeos)
-├── SubastaYa.Infraestructura   # Persistencia EF Core, Migraciones, Repositorios, SignalR, Workers
-└── SubastaYa.API              # Controladores REST, Middleware global, Configuración Swagger y CORS
+Subasta-Ya/
+├── backend/
+│   ├── SubastaYa.slnx                          ← Archivo de solución (contenedor)
+│   └── src/
+│       ├── SubastaYa.Dominio/                   ← Núcleo puro: Entidades, Enums, Reglas, Excepciones (0 dependencias externas)
+│       ├── SubastaYa.Aplicacion/                ← Casos de Uso: Comandos, Consultas, DTOs, Interfaces
+│       ├── SubastaYa.Infraestructura/           ← Persistencia: EF Core, Repositorios, SQL Server, SignalR Hubs
+│       ├── SubastaYa.API/                       ← Punto de entrada HTTP: Controladores REST, Swagger, CORS
+│       ├── SubastaYa.Worker/                    ← Servicio en segundo plano: corre cada 30s y finaliza subastas vencidas
+│       └── SubastaYa.Tests/                     ← Pruebas unitarias con xUnit y Moq
+└── frontend/                                    ← React 19 + TypeScript + Vite
 ```
+
+
+## 3. Creación de la Solución paso a paso (.NET CLI)
+
+A continuación se documenta cómo fue construida la solución desde cero. Estos son los comandos correctos y en el orden correcto ejecutados desde la carpeta `backend/`:
+
+### Paso A — Crear el archivo de solución (.sln)
+
+El `.sln` es solo un contenedor que agrupa proyectos. No es un proyecto en sí mismo:
+
+```
+dotnet new sln -n SubastaYa
+```
+
+### Paso B — Crear los proyectos (de adentro hacia afuera)
+
+Se crean primero las capas internas (sin dependencias) y luego las externas:
+
+```
+# 1. Dominio — Núcleo sin dependencias
+dotnet new classlib -o src/SubastaYa.Dominio -f net9.0
+
+# 2. Aplicación — Casos de uso
+dotnet new classlib -o src/SubastaYa.Aplicacion -f net9.0
+
+# 3. Infraestructura — Acceso a datos y servicios técnicos
+dotnet new classlib -o src/SubastaYa.Infraestructura -f net9.0
+
+# 4. API Web — Punto de entrada HTTP con controladores clásicos
+dotnet new webapi -o src/SubastaYa.API -f net9.0 --use-controllers
+
+# 5. Worker — Servicio en segundo plano
+dotnet new worker -o src/SubastaYa.Worker -f net9.0
+
+# 6. Tests — Pruebas unitarias con xUnit
+dotnet new xunit -o src/SubastaYa.Tests -f net9.0
+```
+
+**Explicación de los flags:**
+* `-o <ruta>`: Carpeta de salida donde se crea el proyecto.
+* `-f net9.0`: Framework destino (.NET 9). Puede cambiarse a `net8.0` según el SDK instalado.
+* `--use-controllers`: Genera la Web API con la arquitectura tradicional de Controllers (en vez de Minimal APIs).
+
+### Paso C — Agregar todos los proyectos a la solución
+
+```
+dotnet sln add src/SubastaYa.Dominio src/SubastaYa.Aplicacion src/SubastaYa.Infraestructura src/SubastaYa.API src/SubastaYa.Worker src/SubastaYa.Tests
+```
+
+### Paso D — Enlazar las referencias entre capas (la parte más importante)
+
+Estos comandos establecen qué capa puede "ver" a cuál, respetando la regla de dependencia de Clean Architecture:
+
+```
+# Aplicacion solo conoce a Dominio
+dotnet add src/SubastaYa.Aplicacion reference src/SubastaYa.Dominio
+
+# Infraestructura implementa las interfaces de Aplicacion y usa las entidades de Dominio
+dotnet add src/SubastaYa.Infraestructura reference src/SubastaYa.Dominio src/SubastaYa.Aplicacion
+
+# API necesita Aplicacion (casos de uso) e Infraestructura (para registrar servicios en DI)
+dotnet add src/SubastaYa.API reference src/SubastaYa.Aplicacion src/SubastaYa.Infraestructura
+
+# Worker necesita Aplicacion (manejadores) e Infraestructura (DbContext, repositorios)
+dotnet add src/SubastaYa.Worker reference src/SubastaYa.Aplicacion src/SubastaYa.Infraestructura
+
+# Tests referencia las capas que necesita probar
+dotnet add src/SubastaYa.Tests reference src/SubastaYa.Dominio src/SubastaYa.Aplicacion src/SubastaYa.Infraestructura
+```
+
+Esto genera las etiquetas `<ProjectReference>` dentro de cada archivo `.csproj`, permitiendo usar `using SubastaYa.Dominio.Entidades;` etc.
+
+
+## 4. Arquitectura y Funcionamiento Backend
+
+El backend está desarrollado sobre **.NET 9 (C#)** siguiendo CQRS (Command Query Responsibility Segregation).
 
 ### Componentes Clave
 
 1. **Persistencia y Control de Concurrencia**:
-   * **Entity Framework Core** sobre **Microsoft SQL Server**.
-   * **Optimistic Locking**: La entidad `Subasta` incorpora un token de concurrencia `RowVersion` (`byte[]`) que previene condiciones de carrera o doble liquidación concurrente.
-   * **Transacciones ACID**: Cada operación que compromete saldo (pujas, liquidación, acreditaciones) corre bajo transacciones atómicas con aislamiento de base de datos.
+   * Entity Framework Core sobre Microsoft SQL Server.
+   * Optimistic Locking: token de concurrencia `RowVersion` (`byte[]`) en la entidad `Subasta` para prevenir condiciones de carrera.
+   * Transacciones ACID: cada operación que compromete saldo corre bajo transacciones atómicas.
 
 2. **Auditoría Inmutable**:
    * Servicio `AuditoriaServicio` con tabla `RegistrosAuditoria`.
-   * Registra cambios de estado de subastas, liquidaciones ejecutadas por el worker, extensiones de tiempo y declaraciones desiertas.
+   * Registra cambios de estado, liquidaciones, extensiones de tiempo y declaraciones desiertas.
 
-3. **Background Services (Trabajadores en Segundo Plano)**:
-   * **`ProcesadorSubastas`** (ciclo cada 30 s):
+3. **Background Services (SubastaYa.Worker)**:
+   * **`ProcesadorSubastas`** (ciclo cada 30 segundos):
      * Inspecciona subastas en estado `Activa` cuya `FechaFin` haya expirado.
-     * **Con ganador**: Debita el saldo retenido del ganador, acredita al vendedor, genera movimientos contables, audita y notifica a clientes conectados.
-     * **Sin pujas**: Cambia el estado a `Desierta`, audita y emite notificación.
-   * **`TemporizadorSubastas`** (ciclo cada 10 s):
-     * Emite el estado de tiempo restante y sincronización a todos los clientes suscritos al Hub de SignalR.
+     * Con ganador: debita saldo retenido del ganador, acredita al vendedor, genera movimientos contables, audita y notifica vía SignalR.
+     * Sin pujas: cambia estado a `Desierta`, audita y notifica.
+   * **`TemporizadorSubastas`**: emite sincronización de tiempo restante a todos los clientes conectados al Hub.
 
----
 
-## Arquitectura y Funcionamiento Frontend
+## 5. Arquitectura y Funcionamiento Frontend
 
-El frontend está desarrollado con **React 19**, **TypeScript** y **Vite**, empaquetado con diseño moderno y soporte en tiempo real.
+Desarrollado con **React 19**, **TypeScript** y **Vite**.
 
 ### Tecnologías Utilizadas
-
 * **Framework**: React 19 + TypeScript.
 * **Enrutamiento**: `@tanstack/react-router`.
-* **Estilos**: Tailwind CSS + Shadcn UI (Radix UI primitives).
-* **Tiempo Real**: `@microsoft/signalr` para WebSockets bidireccionales.
-* **Notificaciones**: `sonner` (Toasts interactivos).
-* **Validaciones**: `zod` para validación estricta de esquemas de formulario.
+* **Estilos**: Tailwind CSS + Shadcn UI (Radix UI).
+* **Tiempo Real**: `@microsoft/signalr` para WebSockets.
+* **Notificaciones**: `sonner` (Toasts).
+* **Validaciones**: `zod`.
 
-### Funcionalidades de la Interfaz
+### Funcionalidades
+* **Página de Inicio (`/`)**: Carrusel de subastas destacadas, filtros por categoría, búsqueda en vivo y tarjetas con temporizador sincronizado.
+* **Detalle de Subasta (`/subasta/:id`)**: Temporizador en cuenta regresiva, panel de ofertas en vivo por WebSocket, historial de pujas con alias anonimizados (`m***a`).
+* **Publicación (`/publicar`)**: Formulario con validación en tiempo real.
+* **Billetera (`/billetera`)**: Saldo disponible, saldo retenido, carga de fondos e historial de movimientos.
+* **Selector de Usuario**: Barra superior para alternar entre usuarios semilla y simular interacciones.
 
-* **Página de Inicio (`/`)**: Carrusel de subastas destacadas (*Hot Carousel*), filtros por categoría, búsqueda en vivo y tarjetas de subastas con temporizador sincronizado.
-* **Detalle de Subasta (`/subasta/:id`)**:
-  * Temporizador dinámico en cuenta regresiva con badge de alerta cuando restan menos de 2 minutos (*Anti-Sniping*).
-  * Panel de ofertas en vivo conectado por WebSocket: si otro usuario puja, el precio se actualiza de inmediato sin recargar la página.
-  * Historial de pujas con alias anonimizados (`m***a`, `a***p`).
-* **Publicación de Subastas (`/publicar`)**:
-  * Formulario con validación en tiempo real para título, descripción, imagen, categoría, precio inicial, incremento mínimo y ventana temporal.
-* **Billetera Virtual (`/billetera`)**:
-  * Visualización de Saldo Disponible y Saldo Retenido por ofertas activas.
-  * Formulario para acreditación inmediata de fondos.
-  * Historial completo de movimientos contables (Cargas, Retenciones, Liberaciones, Débitos, Créditos).
-* **Actividad en Vivo (`/actividad`)**:
-  * Monitor global de eventos del sistema (nuevas subastas, extensiones anti-sniping, cierres y liquidaciones).
-* **Selector de Usuario Activo**:
-  * En la barra de navegación superior permite alternar instantáneamente entre los distintos usuarios del sistema (`ana_vip`, `maria_compradora`, `pedro_postor`, `juan_vendedor`) para simular interacciones entre compradores y vendedores sin cerrar sesión.
 
----
+## 6. Comunicación e Integración (REST + SignalR)
 
-## Comunicación e Integración (REST + SignalR)
-
-El flujo de comunicación combina llamadas síncronas HTTP REST para consultas/comandos puntuales con un canal persistente de WebSocket para actualizaciones en vivo:
+El flujo combina llamadas HTTP REST para consultas/comandos con un canal WebSocket persistente para actualizaciones en vivo:
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -118,128 +187,122 @@ El flujo de comunicación combina llamadas síncronas HTTP REST para consultas/c
 ```
 
 ### Eventos SignalR (`/hubs/subastas`)
+* **`UnirseASubasta(subastaId)`**: Suscribe la conexión al canal de la subasta.
+* **`SalirDeSubasta(subastaId)`**: Desuscribe la conexión.
+* **Eventos push**:
+  * `NuevaPujaRegistrada`: nueva oferta líder.
+  * `ExtensionTiempoAntiSniping`: extensión de tiempo por regla anti-sniping.
+  * `SubastaFinalizada`: ganador y monto final.
+  * `SubastaDesierta`: subasta cerrada sin ofertas.
+  * `ActualizacionTemporizador`: sincronización periódica de tiempos.
 
-* **`UnirseASubasta(subastaId)`**: Suscribe la conexión a un grupo exclusivo de la subasta.
-* **`SalirDeSubasta(subastaId)`**: Desuscribe la conexión al salir de la pantalla.
-* **Eventos recibidos por el cliente**:
-  * `NuevaPujaRegistrada`: Notifica nueva oferta líder, monto y postor anonimizado.
-  * `ExtensionTiempoAntiSniping`: Notifica si la subasta se extendió al recibir una puja cerca del cierre.
-  * `SubastaFinalizada`: Notifica ganador y monto final adjudicado.
-  * `SubastaDesierta`: Notifica que la subasta cerró sin postores.
-  * `ActualizacionTemporizador`: Sincronización periódica de tiempos de las subastas activas.
 
----
+## 7. Catálogo de Endpoints de la API
 
-## Catálogo de Endpoints de la API
+La API REST corre por defecto en `http://localhost:5218`. Documentación Swagger disponible en `/swagger`.
 
-La API REST corre por defecto en `http://localhost:5218`. La documentación interactiva Swagger está disponible en `/swagger`.
-
-### 1. Subastas (`/api/subastas`)
+### Subastas (`/api/subastas`)
 | Método | Ruta | Descripción |
-| :--- | :--- | :--- |
+|:---|:---|:---|
 | `GET` | `/api/subastas` | Listado general de subastas con estado y categoría. |
-| `GET` | `/api/subastas/{id}` | Detalle completo de una subasta por su identificador. |
-| `POST` | `/api/subastas` | Crea una nueva subasta (`titulo`, `descripcion`, `precioInicial`, `incrementoMinimo`, `imagenUrl`, `fechaInicio`, `fechaFin`, `vendedorId`, `categoriaId`). |
+| `GET` | `/api/subastas/{id}` | Detalle completo de una subasta por ID. |
+| `POST` | `/api/subastas` | Crea una nueva subasta. |
 
-### 2. Pujas (`/api/pujas`)
+### Pujas (`/api/pujas`)
 | Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/api/subastas/{subastaId}/pujas` | Historial de ofertas de una subasta específica. |
-| `POST` | `/api/pujas` | Registra una nueva oferta (`subastaId`, `postorId`, `monto`). Realiza validación de saldo, retención de fondos, liberación del líder anterior y evaluación anti-sniping. |
+|:---|:---|:---|
+| `GET` | `/api/subastas/{subastaId}/pujas` | Historial de ofertas de una subasta. |
+| `POST` | `/api/pujas` | Registra una oferta, reteniendo saldo y evaluando anti-sniping. |
 
-### 3. Billeteras (`/api/billeteras`)
+### Billeteras (`/api/billeteras`)
 | Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/api/billeteras/usuario/{usuarioId}` | Consulta saldo disponible, retenido y movimientos contables del usuario. |
-| `POST` | `/api/billeteras/acreditacion` | Acredita saldo en la billetera (`billeteraId`, `monto`, `concepto`). |
+|:---|:---|:---|
+| `GET` | `/api/billeteras/usuario/{usuarioId}` | Consulta saldo disponible, retenido y movimientos. |
+| `POST` | `/api/billeteras/acreditacion` | Acredita saldo en la billetera del usuario. |
 
-### 4. Categorías (`/api/categorias`)
+### Categorías y Usuarios
 | Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/api/categorias` | Lista de categorías disponibles (Electrónica, Hogar, Deportes, Arte). |
-| `GET` | `/api/categorias/{id}` | Detalle de una categoría específica. |
+|:---|:---|:---|
+| `GET` | `/api/categorias` | Lista de categorías disponibles. |
+| `GET` | `/api/usuarios` | Lista de usuarios registrados. |
 
-### 5. Usuarios (`/api/usuarios`)
-| Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/api/usuarios` | Lista de usuarios registrados en el sistema. |
-| `GET` | `/api/usuarios/{id}` | Consulta de perfil y rol de usuario. |
 
----
+## 8. Reglas de Negocio Clave
 
-## Reglas de Negocio Clave
-
-1. **Retención de Saldo en Pujas**: Al ofertar, el monto ofertado se descuenta del `SaldoDisponible` y se suma al `SaldoRetenido`. Si otro usuario supera la puja, el saldo del postor anterior se libera inmediatamente devolviéndose a su `SaldoDisponible`.
-2. **Anti-Sniping**: Si una puja ingresa dentro de los últimos 2 minutos de la subasta, la fecha de finalización se extiende automáticamente por 2 minutos adicionales para permitir contraofertas justas.
+1. **Retención de Saldo en Pujas**: Al ofertar, el monto se descuenta del `SaldoDisponible` y se suma al `SaldoRetenido`. Si otro usuario supera la puja, el saldo del postor anterior se libera inmediatamente.
+2. **Anti-Sniping**: Si una puja ingresa dentro de los últimos 2 minutos, la fecha de finalización se extiende automáticamente 2 minutos más.
 3. **Restricción de Oferta**: Un vendedor no puede pujar en su propia subasta.
-4. **Incremento Mínimo**: Toda nueva oferta debe superar a la oferta actual por al menos el `IncrementoMinimo` configurado.
-5. **Liquidación Atómica**: Al vencer la subasta, el worker confirma el débito del saldo retenido del ganador y lo acredita en la billetera del vendedor dentro de una única transacción ACID.
+4. **Incremento Mínimo**: Toda nueva oferta debe superar a la actual por al menos el `IncrementoMinimo` configurado.
+5. **Liquidación Atómica**: Al vencer la subasta, el Worker debita al ganador y acredita al vendedor dentro de una única transacción ACID.
 
----
 
-## Guía Paso a Paso para la Ejecución
+## 9. Guía de Ejecución
 
 ### Requisitos Previos
 * [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) instalado.
-* [Node.js 18+](https://nodejs.org/) y `npm` instalados.
-* [SQL Server LocalDB](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb) (incluido habitualmente con Visual Studio o instalable individualmente).
+* [Node.js 18+](https://nodejs.org/) y `npm`.
+* [SQL Server LocalDB](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb) o instancia SQL Server local.
 
----
+### Para su descarga y ejecución:
 
-### Paso 1: Clonar el Repositorio
+**Paso 1 — Clonar el repositorio**
+
 ```bash
 git clone <url-del-repositorio>
 cd Subasta-Ya
 ```
 
----
+**Paso 2 — Inicializar la base de datos**
 
-### Paso 2: Inicializar la Base de Datos
-Desde la raíz del proyecto, aplicar las migraciones de Entity Framework Core para crear la base de datos `SubastaYaDb_Dev` y cargar los datos semilla iniciales:
+Aplicar las migraciones de Entity Framework Core para crear la base de datos `SubastaYaDb_Dev` y cargar los datos semilla:
 
-```powershell
+```
 dotnet ef database update --project backend/src/SubastaYa.Infraestructura --startup-project backend/src/SubastaYa.API
 ```
 
-*(Opcional) Si querés correr las pruebas unitarias para validar que todo esté en orden:*
-```powershell
+(Opcional) Ejecutar las pruebas unitarias:
+
+```
 dotnet test backend/src/SubastaYa.Tests/SubastaYa.Tests.csproj
 ```
 
----
+**Paso 3 — Ejecutar el Backend**
 
-### Paso 3: Ejecutar el Backend API
-Abrir una terminal y correr el proyecto API:
+Abrir una terminal en la raíz del proyecto:
 
-```powershell
+```
 dotnet run --project backend/src/SubastaYa.API
 ```
 
-* La API quedará disponible en: `http://localhost:5218`
-* Documentación Swagger UI: `http://localhost:5218/swagger`
-* Hub de SignalR: `ws://localhost:5218/hubs/subastas`
+* API REST: `http://localhost:5218`
+* Swagger UI: `http://localhost:5218/swagger`
+* SignalR Hub: `ws://localhost:5218/hubs/subastas`
 
----
+(Opcional, en otra terminal, si se ejecuta el Worker como proceso independiente):
 
-### Paso 4: Instalar Dependencias y Ejecutar el Frontend
-Abrir una **segunda terminal** en la carpeta `frontend`:
+```
+dotnet run --project backend/src/SubastaYa.Worker
+```
 
-```powershell
+**Paso 4 — Ejecutar el Frontend**
+
+Abrir una segunda terminal:
+
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-* La aplicación web iniciará en: `http://localhost:8080` (o el puerto asignado por Vite en consola).
+* Frontend Web: `http://localhost:8080` (o el puerto asignado por Vite en consola).
 
----
 
-## Usuarios y Datos de Prueba
+## 10. Usuarios y Datos de Prueba
 
 El sistema incluye datos semilla listos para probar todos los casos de uso:
 
 | Usuario | Rol | Alias | Saldo Disp. | Saldo Ret. | Estado / Escenario |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+|:---|:---|:---|:---|:---|:---|
 | **Id: 5** | Comprador | `ana_vip` | $44.000 | $6.000 | Líder actual en la subasta *Notebook Gamer MSI*. |
 | **Id: 3** | Comprador | `maria_compradora` | $10.000 | $8.500 | Líder actual en la subasta *Cuadro Óleo Original*. |
 | **Id: 4** | Comprador | `pedro_postor` | $200 | $0 | Usuario con saldo insuficiente para validar rechazo de pujas. |
