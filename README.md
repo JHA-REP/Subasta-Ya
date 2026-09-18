@@ -119,7 +119,7 @@ Esto genera las etiquetas `<ProjectReference>` dentro de cada archivo `.csproj`,
 
 ## 4. Arquitectura y Funcionamiento Backend
 
-El backend está desarrollado sobre **.NET 9 (C#)** siguiendo CQRS (Command Query Responsibility Segregation).
+El backend está desarrollado sobre **.NET 8 (C#)** siguiendo CQRS (Command Query Responsibility Segregation).
 
 ### Componentes Clave
 
@@ -239,7 +239,7 @@ La API REST corre por defecto en `http://localhost:5218`. Documentación Swagger
 ## 9. Guía de Ejecución
 
 ### Requisitos Previos
-* [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) instalado.
+* [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) instalado.
 * [Node.js 18+](https://nodejs.org/) y `npm`.
 * [SQL Server LocalDB](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb) o instancia SQL Server local.
 
